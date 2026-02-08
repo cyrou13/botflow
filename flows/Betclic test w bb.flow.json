@@ -1,0 +1,178 @@
+{
+  "flow_id": "Betclic test w bb",
+  "site": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+  "version": 1,
+  "params": {
+    "url": {
+      "type": "string",
+      "required": true,
+      "default": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416"
+    }
+  },
+  "returns": {},
+  "steps": [
+    {
+      "id": "s_001",
+      "action": "navigate",
+      "description": "Navigate to {{params.url}}",
+      "url": "{{params.url}}",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_002",
+      "action": "click",
+      "description": "Click a \"Football\"",
+      "target": {
+        "css": "bcdk-breadcrumb-item.breadcrumb_item:nth-child(3) > a.breadcrumb_itemLink",
+        "xpath": "//bcdk-breadcrumb-item[.//*[contains(text(),\"Football\")]]/a",
+        "text_content": "Football",
+        "dom_neighborhood": "Football > Football  Italie Serie A • J24 > Football  Italie Serie A • J24  2' • 1ère mi-temps > Football  Italie Serie A • J24  2' • 1ère mi-temps  Juventus 0 - 0 Lazio"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_003",
+      "action": "click",
+      "description": "Click span \"Italie Serie A • J24\"",
+      "target": {
+        "css": "span.marquee_content",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[1]/div[1]/sports-events-event-info/bcdk-breadcrumb/div/bcdk-breadcrumb-item[4]/a/span/span/span",
+        "text_content": "Italie Serie A • J24",
+        "dom_neighborhood": "Italie Serie A • J24 > Football > Football  Italie Serie A • J24 > Football  Italie Serie A • J24  2' • 1ère mi-temps > Football  Italie Serie A • J24  2' • 1ère mi-temps  Juventus 0 - 0 Lazio"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_004",
+      "action": "click",
+      "description": "Click scoreboards-timer \"2' • 1ère mi-temps\"",
+      "target": {
+        "css": "div.event_headerWrapper:nth-child(1) > sports-events-event-info.event_info > div.event_infoTime > scoreboards-timer",
+        "xpath": "//div[.//*[contains(text(),\"2' • 1ère mi-temps\")]]/scoreboards-timer",
+        "text_content": "2' • 1ère mi-temps",
+        "dom_neighborhood": "2' • 1ère mi-temps > Football  Italie Serie A • J24 > Football  Italie Serie A • J24  2' • 1ère mi-temps > Football  Italie Serie A • J24  2' • 1ère mi-temps  Juventus 0 - 0 Lazio > Football > SportLive14DéfisPromotionsPokerTurfInscriptionConnexion"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_005",
+      "action": "click",
+      "description": "Click div \"Juventus\"",
+      "target": {
+        "css": "div.event_scoreboard > scoreboards-scoreboard.scoreboard > scoreboards-scoreboard-global.scoreboard_wrapper > scoreboards-logo.scoreboard_contestant.scoreboard_contestant-1:nth-child(1) > div.scoreboard_contestantLabel",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[1]/div[2]/div/scoreboards-scoreboard/scoreboards-scoreboard-global/scoreboards-logo[1]/div",
+        "text_content": "Juventus",
+        "dom_neighborhood": "Juventus > Juventus 0 - 0 Lazio > Football  Italie Serie A • J24  2' • 1ère mi-temps > Football  Italie Serie A • J24  2' • 1ère mi-temps  Juventus 0 - 0 Lazio > Football"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_006",
+      "action": "click",
+      "description": "Click span \"0\"",
+      "target": {
+        "css": "div.event_scoreboard > scoreboards-scoreboard.scoreboard > scoreboards-scoreboard-global.scoreboard_wrapper > scoreboards-scoreboard-global-scores.scoreboard_info > div.scoreboard_totalScore > span.scoreboard_score.scoreboard_score-1:nth-child(1)",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[1]/div[2]/div/scoreboards-scoreboard/scoreboards-scoreboard-global/scoreboards-scoreboard-global-scores/div/span[1]",
+        "text_content": "0",
+        "dom_neighborhood": "0 - 0 > Juventus > Juventus 0 - 0 Lazio > Football  Italie Serie A • J24  2' • 1ère mi-temps > Football  Italie Serie A • J24  2' • 1ère mi-temps  Juventus 0 - 0 Lazio"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_007",
+      "action": "click",
+      "description": "Click span \"0\"",
+      "target": {
+        "css": "div.event_scoreboard > scoreboards-scoreboard.scoreboard > scoreboards-scoreboard-global.scoreboard_wrapper > scoreboards-scoreboard-global-scores.scoreboard_info > div.scoreboard_totalScore > span.scoreboard_score.scoreboard_score-2:nth-child(2)",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[1]/div[2]/div/scoreboards-scoreboard/scoreboards-scoreboard-global/scoreboards-scoreboard-global-scores/div/span[2]",
+        "text_content": "0",
+        "dom_neighborhood": "0 - 0 > Juventus > Juventus 0 - 0 Lazio > Football  Italie Serie A • J24  2' • 1ère mi-temps > Football  Italie Serie A • J24  2' • 1ère mi-temps  Juventus 0 - 0 Lazio"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_008",
+      "action": "click",
+      "description": "Click div \"Lazio\"",
+      "target": {
+        "css": "div.event_scoreboard > scoreboards-scoreboard.scoreboard > scoreboards-scoreboard-global.scoreboard_wrapper > scoreboards-logo.scoreboard_contestant.scoreboard_contestant-2:nth-child(3) > div.scoreboard_contestantLabel",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[1]/div[2]/div/scoreboards-scoreboard/scoreboards-scoreboard-global/scoreboards-logo[2]/div",
+        "text_content": "Lazio",
+        "dom_neighborhood": "Lazio > Juventus > Juventus 0 - 0 Lazio > Football  Italie Serie A • J24  2' • 1ère mi-temps > Football  Italie Serie A • J24  2' • 1ère mi-temps  Juventus 0 - 0 Lazio > Football"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_009",
+      "action": "click",
+      "description": "Click bcdk-bet-button-label \"2,30\"",
+      "target": {
+        "css": "div.marketBox > div.marketBox_body:nth-child(2) > div.marketBox_lineSelection > bcdk-bet-button-wrapper.btnWrapper.is-inline > button.btn.is-large.is-odd > bcdk-bet-button-label.btn_label",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[4]/sports-match-markets/sports-markets-hot-bets/bcdk-horizontal-scroller/div[2]/ul/sports-markets-hot-bets-item[1]/div/div[2]/div/bcdk-bet-button-wrapper/button/bcdk-bet-button-label",
+        "text_content": "2,30",
+        "dom_neighborhood": "2,30 > Oui > But pour les 2 équipes"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_010",
+      "action": "click",
+      "description": "Click bcdk-bet-button-label \"1,36\"",
+      "target": {
+        "css": "div.marketBox_lineSelection:nth-child(1) > bcdk-bet-button-wrapper.btnWrapper.is-inline > button.btn.is-large.is-odd > bcdk-bet-button-label.btn_label:nth-child(3)",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[4]/sports-match-markets/bcdk-vertical-scroller/div/div[2]/div/div/sports-markets-single-market[1]/sports-markets-special-market-header/div/sports-simple-markets/div/div[1]/bcdk-bet-button-wrapper/button/bcdk-bet-button-label[2]",
+        "text_content": "1,36",
+        "dom_neighborhood": "Juventus > Résultat du match (tps rég.)"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_011",
+      "action": "click",
+      "description": "Click bcdk-bet-button-label \"4,00\"",
+      "target": {
+        "css": "div.marketBox_lineSelection:nth-child(2) > bcdk-bet-button-wrapper.btnWrapper.is-inline > button.btn.is-large.is-odd > bcdk-bet-button-label.btn_label:nth-child(3)",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[4]/sports-match-markets/bcdk-vertical-scroller/div/div[2]/div/div/sports-markets-single-market[1]/sports-markets-special-market-header/div/sports-simple-markets/div/div[2]/bcdk-bet-button-wrapper/button/bcdk-bet-button-label[2]",
+        "text_content": "4,00",
+        "dom_neighborhood": "Nul > Juventus > Résultat du match (tps rég.)"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_012",
+      "action": "click",
+      "description": "Click bcdk-bet-button-label \"7,50\"",
+      "target": {
+        "css": "div.marketBox_lineSelection:nth-child(3) > bcdk-bet-button-wrapper.btnWrapper.is-inline > button.btn.is-large.is-odd > bcdk-bet-button-label.btn_label:nth-child(3)",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[4]/sports-match-markets/bcdk-vertical-scroller/div/div[2]/div/div/sports-markets-single-market[1]/sports-markets-special-market-header/div/sports-simple-markets/div/div[3]/bcdk-bet-button-wrapper/button/bcdk-bet-button-label[2]",
+        "text_content": "7,50",
+        "dom_neighborhood": "Lazio > Juventus > Résultat du match (tps rég.)"
+      },
+      "url": "https://www.betclic.fr/football-sfootball/italie-serie-a-c6/juventus-lazio-m919228930748416",
+      "timeout_ms": 10000,
+      "optional": false
+    }
+  ],
+  "returns_mapping": {}
+}

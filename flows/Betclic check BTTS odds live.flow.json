@@ -1,0 +1,38 @@
+{
+  "flow_id": "Betclic check BTTS odds live",
+  "site": "https://www.betclic.fr/football-sfootball/espagne-laliga-c7/atletico-madrid-betis-m1015123645120512",
+  "version": 1,
+  "params": {
+    "url": {
+      "type": "string",
+      "required": true,
+      "default": "https://www.betclic.fr/football-sfootball/espagne-laliga-c7/atletico-madrid-betis-m1015123645120512"
+    }
+  },
+  "returns": {},
+  "steps": [
+    {
+      "id": "s_001",
+      "action": "navigate",
+      "description": "Navigate to {{params.url}}",
+      "url": "{{params.url}}",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_002",
+      "action": "extract",
+      "description": "Extract bcdk-bet-button-label \"1,32\"",
+      "target": {
+        "css": "sports-matrix-markets > div.marketBox_body.is-2col > div.marketBox_lineSelection:nth-child(1) > bcdk-bet-button-wrapper.btnWrapper.is-inline > button.btn.is-large.is-odd > bcdk-bet-button-label.btn_label",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[5]/sports-match-markets/bcdk-vertical-scroller/div/div[2]/div/div/sports-markets-single-market[5]/sports-markets-special-market-header/div/sports-matrix-markets/div/div[1]/bcdk-bet-button-wrapper/button/bcdk-bet-button-label",
+        "text_content": "1,32",
+        "dom_neighborhood": "1,32 > Oui > But pour les 2 équipes > Résultat du match (tps rég.)"
+      },
+      "url": "{{params.url}}",
+      "timeout_ms": 10000,
+      "optional": false
+    }
+  ],
+  "returns_mapping": {}
+}

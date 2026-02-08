@@ -1,0 +1,134 @@
+{
+  "flow_id": "Betclic login",
+  "site": "https://www.betclic.fr/connexion?returnUrl=%2F",
+  "version": 1,
+  "params": {},
+  "returns": {},
+  "steps": [
+    {
+      "id": "s_001",
+      "action": "navigate",
+      "description": "Navigate to https://www.betclic.fr/connexion?returnUrl=%2F",
+      "url": "https://www.betclic.fr/connexion?returnUrl=%2F",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_wait_cookies",
+      "action": "wait",
+      "description": "Wait for cookies popup",
+      "target": {
+        "css": "#popin_tc_privacy_button_2"
+      },
+      "timeout_ms": 15000,
+      "optional": false
+    },
+    {
+      "id": "s_002",
+      "action": "click",
+      "description": "Click button \"Tout accepter\"",
+      "target": {
+        "css": "#popin_tc_privacy_button_2",
+        "xpath": "//button[@id=\"popin_tc_privacy_button_2\"]",
+        "text_content": "Tout accepter"
+      },
+      "url": "https://www.betclic.fr/connexion?returnUrl=%2F",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_delay_cookies",
+      "action": "wait",
+      "description": "Wait for cookie overlay to animate away",
+      "value": "2000",
+      "timeout_ms": 5000,
+      "optional": false
+    },
+    {
+      "id": "s_wait_form",
+      "action": "wait",
+      "description": "Wait for login form",
+      "target": {
+        "css": "input[autocomplete=\"username\"]",
+        "xpath": "//bc-login-form//input"
+      },
+      "timeout_ms": 20000,
+      "optional": false
+    },
+    {
+      "id": "s_003",
+      "action": "fill",
+      "description": "Fill email",
+      "target": {
+        "css": "input[autocomplete=\"username\"]",
+        "xpath": "//bc-login-form//bcdk-input-base//input"
+      },
+      "url": "https://www.betclic.fr/connexion?returnUrl=%2F",
+      "value": "cyrou13@gmail.com",
+      "timeout_ms": 15000,
+      "optional": false
+    },
+    {
+      "id": "s_004",
+      "action": "fill",
+      "description": "Fill password",
+      "target": {
+        "css": "input[data-qa=\"password\"]",
+        "xpath": "//bc-login-form//bcdk-input-password//input"
+      },
+      "url": "https://www.betclic.fr/connexion?returnUrl=%2F",
+      "value": "2MUzpj8dYZ7wpV7",
+      "timeout_ms": 15000,
+      "optional": false
+    },
+    {
+      "id": "s_005",
+      "action": "click",
+      "description": "Click button \"Connexion\"",
+      "target": {
+        "css": "button.btn.is-primary:not(.is-ghost)",
+        "text_content": "Connexion"
+      },
+      "url": "https://www.betclic.fr/connexion?returnUrl=%2F",
+      "timeout_ms": 15000,
+      "optional": false
+    },
+    {
+      "id": "s_wait_birthdate",
+      "action": "wait",
+      "description": "Wait for birthdate form",
+      "target": {
+        "css": "#date"
+      },
+      "timeout_ms": 15000,
+      "optional": false
+    },
+    {
+      "id": "s_006",
+      "action": "type",
+      "description": "Type birthdate",
+      "target": {
+        "css": "#date",
+        "xpath": "//input[@id=\"date\"]"
+      },
+      "url": "https://www.betclic.fr/connexion/recap/birthdate?returnUrl=%2F",
+      "value": "15/09/1976",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_007",
+      "action": "click",
+      "description": "Click button \"Valider\"",
+      "target": {
+        "css": "button.btn.is-primary.is-large",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/bc-digest-birthdate/bc-digest-page-template/div/div/div/div/div[3]/bc-digest-footer/div/button",
+        "text_content": "Valider"
+      },
+      "url": "https://www.betclic.fr/connexion/recap/birthdate?returnUrl=%2F",
+      "timeout_ms": 10000,
+      "optional": false
+    }
+  ],
+  "returns_mapping": {}
+}

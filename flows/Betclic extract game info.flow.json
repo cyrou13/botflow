@@ -1,0 +1,121 @@
+{
+  "flow_id": "Betclic extract game info",
+  "site": "https://www.betclic.fr/football-sfootball/liga-betclic-c32/sporting-braga-rio-ave-fc-m1021719130206208",
+  "version": 1,
+  "params": {
+    "url": {
+      "type": "string",
+      "required": true,
+      "default": "https://www.betclic.fr/football-sfootball/liga-betclic-c32/sporting-braga-rio-ave-fc-m1021719130206208"
+    }
+  },
+  "returns": {
+    "home": {
+      "type": "string"
+    },
+    "away": {
+      "type": "string"
+    },
+    "time": {
+      "type": "string"
+    },
+    "home_score": {
+      "type": "string"
+    },
+    "away_score": {
+      "type": "string"
+    }
+  },
+  "steps": [
+    {
+      "id": "s_001",
+      "action": "navigate",
+      "description": "Navigate to {{params.url}}",
+      "url": "{{params.url}}",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_002",
+      "action": "extract",
+      "description": "Extract div \"Braga\"",
+      "target": {
+        "css": "div.event_scoreboard > scoreboards-scoreboard.scoreboard > scoreboards-scoreboard-global.scoreboard_wrapper > scoreboards-logo.scoreboard_contestant.scoreboard_contestant-1:nth-child(1) > div.scoreboard_contestantLabel",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[1]/div[2]/div/scoreboards-scoreboard/scoreboards-scoreboard-global/scoreboards-logo[1]/div",
+        "text_content": "Braga",
+        "dom_neighborhood": "Braga > Braga 1 - 0 Rio Ave > Football  Liga Betclic • J21  Mi-temps > Football  Liga Betclic • J21  Mi-temps  Braga 1 - 0 Rio Ave > Football"
+      },
+      "url": "{{params.url}}",
+      "save_as": "home",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_003",
+      "action": "extract",
+      "description": "Extract div \"Rio Ave\"",
+      "target": {
+        "css": "div.event_scoreboard > scoreboards-scoreboard.scoreboard > scoreboards-scoreboard-global.scoreboard_wrapper > scoreboards-logo.scoreboard_contestant.scoreboard_contestant-2:nth-child(3) > div.scoreboard_contestantLabel",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[1]/div[2]/div/scoreboards-scoreboard/scoreboards-scoreboard-global/scoreboards-logo[2]/div",
+        "text_content": "Rio Ave",
+        "dom_neighborhood": "Rio Ave > Braga > Braga 1 - 0 Rio Ave > Football  Liga Betclic • J21  Mi-temps > Football  Liga Betclic • J21  Mi-temps  Braga 1 - 0 Rio Ave > Football"
+      },
+      "url": "{{params.url}}",
+      "save_as": "away",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_004",
+      "action": "extract",
+      "description": "Extract scoreboards-timer \"Mi-temps\"",
+      "target": {
+        "css": "div.event_headerWrapper:nth-child(1) > sports-events-event-info.event_info > div.event_infoTime > scoreboards-timer",
+        "xpath": "//div[.//*[contains(text(),\"Mi-temps\")]]/scoreboards-timer",
+        "text_content": "Mi-temps",
+        "dom_neighborhood": "Mi-temps > Football  Liga Betclic • J21 > Football  Liga Betclic • J21  Mi-temps > Football  Liga Betclic • J21  Mi-temps  Braga 1 - 0 Rio Ave > Football > SportLive35DéfisPromotionsPokerTurfInscriptionConnexion"
+      },
+      "url": "{{params.url}}",
+      "save_as": "time",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_005",
+      "action": "extract",
+      "description": "Extract span \"1\"",
+      "target": {
+        "css": "div.scoreboard_totalScore.has-teamBgColor > span.scoreboard_score.scoreboard_score-1:nth-child(1)",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[1]/div[2]/div/scoreboards-scoreboard/scoreboards-scoreboard-global/scoreboards-scoreboard-global-scores/div/span[1]",
+        "text_content": "1",
+        "dom_neighborhood": "1 - 0 > Braga > Braga 1 - 0 Rio Ave > Football  Liga Betclic • J21  Mi-temps > Football  Liga Betclic • J21  Mi-temps  Braga 1 - 0 Rio Ave"
+      },
+      "url": "{{params.url}}",
+      "save_as": "home_score",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_006",
+      "action": "extract",
+      "description": "Extract span \"0\"",
+      "target": {
+        "css": "div.scoreboard_totalScore.has-teamBgColor > span.scoreboard_score.scoreboard_score-2:nth-child(2)",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[1]/div[2]/div/scoreboards-scoreboard/scoreboards-scoreboard-global/scoreboards-scoreboard-global-scores/div/span[2]",
+        "text_content": "0",
+        "dom_neighborhood": "1 - 0 > Braga > Braga 1 - 0 Rio Ave > Football  Liga Betclic • J21  Mi-temps > Football  Liga Betclic • J21  Mi-temps  Braga 1 - 0 Rio Ave"
+      },
+      "url": "{{params.url}}",
+      "save_as": "away_score",
+      "timeout_ms": 10000,
+      "optional": false
+    }
+  ],
+  "returns_mapping": {
+    "home": "{{extracted.home}}",
+    "away": "{{extracted.away}}",
+    "time": "{{extracted.time}}",
+    "home_score": "{{extracted.home_score}}",
+    "away_score": "{{extracted.away_score}}"
+  }
+}

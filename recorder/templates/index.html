@@ -22,10 +22,13 @@
             <!-- Header -->
             <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-2">
                 <div class="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center text-sm font-bold">B</div>
-                <div>
+                <div class="flex-1">
                     <h1 class="text-base font-bold text-blue-400 leading-tight">BotFlow</h1>
                     <p class="text-[11px] text-gray-500 leading-tight">Recorder & Runner</p>
                 </div>
+                <a href="/about" target="_blank" class="text-gray-500 hover:text-gray-300 transition-colors" title="About BotFlow">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </a>
             </div>
 
             <!-- Tabs -->
@@ -95,6 +98,12 @@
                         </button>
                         <div id="flow-detail-header" class="bg-gray-700/50 rounded-lg p-3 mb-3"></div>
                         <div id="flow-params-form" class="mb-3"></div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="headless-toggle" class="w-3.5 h-3.5 rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer">
+                                <span class="text-xs text-gray-400">Headless</span>
+                            </label>
+                        </div>
                         <button id="run-flow-btn" onclick="runSelectedFlow()"
                             class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2">
                             <span>&#9654;</span> Run Flow
@@ -555,7 +564,7 @@
             const res = await fetch('/api/run-flow', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ flow_id: flow.flow_id, params })
+                body: JSON.stringify({ flow_id: flow.flow_id, params, headless: document.getElementById('headless-toggle').checked })
             });
             const data = await res.json();
             if (!res.ok) { alert(data.detail || 'Failed to start run'); return; }
@@ -861,6 +870,18 @@
                 </div>`;
         }
 
+        // Save as (for extract steps)
+        if (step.action === 'extract') {
+            fieldsHtml += `
+                <div class="mb-1.5">
+                    <label class="text-[10px] text-gray-500">Save as <span class="text-gray-600">(variable name for API result)</span></label>
+                    <input type="text" value="${escapeHtml(step.save_as || '')}"
+                        placeholder="e.g. home_team, score_home..."
+                        onchange="updateStepField(${index}, 'save_as', this.value || null)"
+                        class="w-full bg-gray-700 border ${step.save_as ? 'border-purple-500/50' : 'border-gray-600'} rounded px-2 py-1 text-xs font-mono focus:border-purple-500 focus:outline-none ${step.save_as ? 'text-purple-300' : ''}">
+                </div>`;
+        }
+
         // Target selectors
         if (target && Object.keys(target).length > 0) {
             const selectorFields = ['css', 'xpath', 'text_content', 'aria_label'];
@@ -1067,14 +1088,24 @@
     async function saveFlow() {
         if (!editingFlow) return;
 
+        // Auto-generate returns + returns_mapping from save_as fields
+        const returns = Object.assign({}, editingFlow.returns || {});
+        const returnsMapping = Object.assign({}, editingFlow.returns_mapping || {});
+        for (const s of editingFlow.steps) {
+            if (s.action === 'extract' && s.save_as) {
+                returns[s.save_as] = returns[s.save_as] || { type: 'string' };
+                returnsMapping[s.save_as] = `{{extracted.${s.save_as}}}`;
+            }
+        }
+
         // Build the flow payload
         const payload = {
             flow_id: editingFlow.flow_id,
             site: editingFlow.site,
             version: editingFlow.version || 1,
             params: editingFlow.params || {},
-            returns: editingFlow.returns || {},
-            returns_mapping: editingFlow.returns_mapping || {},
+            returns: returns,
+            returns_mapping: returnsMapping,
             steps: editingFlow.steps.map(s => {
                 const step = {
                     id: s.id,
@@ -1082,6 +1113,7 @@
                     description: s.description || null,
                     url: s.url || null,
                     value: s.value || null,
+                    save_as: s.save_as || null,
                     optional: s.optional || false,
                     timeout_ms: s.timeout_ms || 10000,
                 };

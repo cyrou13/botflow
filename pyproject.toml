@@ -54,4 +54,4 @@ select = ["E", "F", "I", "N", "W"]
 ignore = ["E501"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["botengine", "recorder", "dashboard"]
+packages = ["botengine", "recorder", "dashboard", "botflow"]

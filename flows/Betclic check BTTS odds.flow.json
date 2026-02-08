@@ -1,0 +1,37 @@
+{
+  "flow_id": "Betclic check BTTS odds",
+  "site": "https://www.betclic.fr/football-sfootball/ligue-1-mcdonald-s-c4/paris-sg-marseille-m1015161193578496",
+  "version": 1,
+  "params": {
+    "url": {
+      "type": "string",
+      "required": true,
+      "default": "https://www.betclic.fr/football-sfootball/ligue-1-mcdonald-s-c4/paris-sg-marseille-m1015161193578496"
+    }
+  },
+  "returns": {},
+  "steps": [
+    {
+      "id": "s_001",
+      "action": "navigate",
+      "description": "Navigate to {{params.url}}",
+      "url": "{{params.url}}",
+      "timeout_ms": 10000,
+      "optional": false
+    },
+    {
+      "id": "s_002",
+      "action": "extract",
+      "description": "Extract bcdk-bet-button-label \"1,54\"",
+      "target": {
+        "css": "sports-matrix-markets > div.marketBox_body.is-2col > div.marketBox_lineSelection:nth-child(1) > bcdk-bet-button-wrapper.btnWrapper.is-inline > button.btn.has-trends.is-large.is-odd > bcdk-bet-button-label.btn_label",
+        "xpath": "/html/body/app-desktop/app-desktop-sports-layout/div[1]/div/bcdk-content-scroller/div/sports-match-page-desktop/div[3]/sports-match-markets[2]/bcdk-vertical-scroller/div/div[2]/div/div/sports-markets-single-market[7]/sports-markets-special-market-header/div/sports-matrix-markets/div/div[1]/bcdk-bet-button-wrapper/button/bcdk-bet-button-label",
+        "text_content": "1,54"
+      },
+      "url": "{{params.url}}",
+      "timeout_ms": 10000,
+      "optional": false
+    }
+  ],
+  "returns_mapping": {}
+}

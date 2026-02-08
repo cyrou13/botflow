@@ -225,6 +225,7 @@ class RecordingStatus(BaseModel):
 class RunFlowRequest(BaseModel):
     flow_id: str
     params: dict[str, Any] = {}
+    headless: bool = False
 
 
 # --- Recording API Endpoints ---
@@ -466,6 +467,7 @@ async def get_flow(flow_id: str) -> dict[str, Any]:
                 "url": s.url,
                 "value": s.value,
                 "target": s.target.model_dump(exclude_none=True) if s.target else None,
+                "save_as": s.save_as,
                 "optional": s.optional,
                 "timeout_ms": s.timeout_ms,
             }
@@ -513,7 +515,11 @@ async def delete_flow(flow_id: str) -> dict[str, str]:
 
 def _render_step_description(step: Any, params: dict[str, Any]) -> str:
     """Resolve {{params.xxx}} templates in step descriptions."""
-    desc = step.description or step.id
+    # For extract steps with save_as, show the variable name
+    if step.action.value == "extract" and step.save_as:
+        desc = f"Extract {step.save_as}"
+    else:
+        desc = step.description or step.id
     if "{{" not in desc:
         return desc
     import re
@@ -569,7 +575,7 @@ async def run_flow(req: RunFlowRequest) -> dict[str, str]:
     }
 
     # Launch background task
-    task = asyncio.create_task(_execute_flow_background(run_id, req.flow_id, req.params))
+    task = asyncio.create_task(_execute_flow_background(run_id, req.flow_id, req.params, req.headless))
     _run_tasks[run_id] = task
 
     log.info("flow_run_started", run_id=run_id, flow_id=req.flow_id)
@@ -585,7 +591,7 @@ async def run_status(run_id: str) -> dict[str, Any]:
 
 
 async def _execute_flow_background(
-    run_id: str, flow_id: str, params: dict[str, Any]
+    run_id: str, flow_id: str, params: dict[str, Any], headless: bool = False
 ) -> None:
     """Execute a flow in the background, updating _runs[run_id] after each step."""
     from botengine.engine import BotEngine
@@ -597,7 +603,7 @@ async def _execute_flow_background(
     try:
         engine = BotEngine(
             flows_dir=_flows_dir,
-            headless=False,
+            headless=headless,
             heal_mode=HealMode.OFF,
         )
         await engine.start()
@@ -687,6 +693,15 @@ async def index() -> str:
     if template_path.exists():
         return template_path.read_text()
     return "<html><body><h1>BotFlow Recorder</h1><p>Template not found.</p></body></html>"
+
+
+@app.get("/about", response_class=HTMLResponse)
+async def docs_page() -> str:
+    """Serve the documentation page."""
+    template_path = Path(__file__).parent / "templates" / "docs.html"
+    if template_path.exists():
+        return template_path.read_text()
+    return "<html><body><h1>BotFlow Docs</h1><p>Template not found.</p></body></html>"
 
 
 def main() -> None:
