@@ -54,6 +54,16 @@ class TestCSSResolver:
         result = await CSSResolver().resolve(page, target)
         assert result is None
 
+    async def test_returns_none_when_hidden(self) -> None:
+        page = _make_mock_page()
+        element = _make_element()
+        element.is_visible = AsyncMock(return_value=False)
+        page.query_selector = AsyncMock(return_value=element)
+        target = TargetSelector(css="#hidden-btn")
+
+        result = await CSSResolver().resolve(page, target)
+        assert result is None
+
 
 class TestXPathResolver:
     async def test_finds_by_xpath(self) -> None:
@@ -69,6 +79,16 @@ class TestXPathResolver:
     async def test_returns_none_when_no_xpath(self) -> None:
         page = _make_mock_page()
         target = TargetSelector()
+        result = await XPathResolver().resolve(page, target)
+        assert result is None
+
+    async def test_returns_none_when_hidden(self) -> None:
+        page = _make_mock_page()
+        element = _make_element()
+        element.is_visible = AsyncMock(return_value=False)
+        page.query_selector = AsyncMock(return_value=element)
+        target = TargetSelector(xpath="//button[@id='hidden']")
+
         result = await XPathResolver().resolve(page, target)
         assert result is None
 
@@ -93,6 +113,19 @@ class TestTextResolver:
         locator.count = AsyncMock(return_value=3)
         page.get_by_text = MagicMock(return_value=locator)
         target = TargetSelector(text_content="Button")
+
+        result = await TextResolver().resolve(page, target)
+        assert result is None
+
+    async def test_returns_none_when_hidden(self) -> None:
+        page = _make_mock_page()
+        element = _make_element()
+        element.is_visible = AsyncMock(return_value=False)
+        locator = AsyncMock()
+        locator.count = AsyncMock(return_value=1)
+        locator.element_handle = AsyncMock(return_value=element)
+        page.get_by_text = MagicMock(return_value=locator)
+        target = TargetSelector(text_content="Hidden")
 
         result = await TextResolver().resolve(page, target)
         assert result is None
@@ -214,4 +247,4 @@ class TestResolverCascade:
     async def test_default_resolvers_order(self) -> None:
         cascade = ResolverCascade()
         names = [r.name for r in cascade.resolvers]
-        assert names == ["css", "xpath", "text", "aria", "fuzzy_text"]
+        assert names == ["xpath", "css", "text", "aria", "fuzzy_text"]

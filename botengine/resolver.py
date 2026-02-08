@@ -29,8 +29,8 @@ class ResolverCascade:
 
     def __init__(self, resolvers: list[BaseResolver] | None = None) -> None:
         self.resolvers = resolvers or [
-            CSSResolver(),
             XPathResolver(),
+            CSSResolver(),
             TextResolver(),
             AriaResolver(),
             FuzzyTextResolver(),

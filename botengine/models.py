@@ -79,6 +79,7 @@ class StepAction(str, Enum):
     SELECT = "select"
     HOVER = "hover"
     SCROLL = "scroll"
+    TYPE = "type"
 
 
 class FlowStep(BaseModel):

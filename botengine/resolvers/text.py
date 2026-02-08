@@ -27,5 +27,7 @@ class TextResolver(BaseResolver):
         locator = page.get_by_text(target.text_content, exact=True)
         count = await locator.count()
         if count == 1:
-            return await locator.element_handle()
+            element = await locator.element_handle()
+            if element and await element.is_visible():
+                return element
         return None

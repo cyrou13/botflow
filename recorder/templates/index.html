@@ -5,151 +5,1149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BotFlow Recorder</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { animation: spin 1s linear infinite; }
+        .step-details { max-height: 0; overflow: hidden; transition: max-height 0.2s ease-out; }
+        .step-details.open { max-height: 400px; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+    </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen">
     <div class="flex h-screen">
-        <!-- Left Panel: Controls -->
-        <div class="w-96 bg-gray-800 border-r border-gray-700 flex flex-col overflow-y-auto">
+        <!-- Left Panel -->
+        <div class="w-[420px] bg-gray-800 border-r border-gray-700 flex flex-col overflow-hidden">
             <!-- Header -->
-            <div class="p-4 border-b border-gray-700">
-                <h1 class="text-xl font-bold text-blue-400">BotFlow Recorder</h1>
-                <p class="text-sm text-gray-400 mt-1">Record automation flows visually</p>
-            </div>
-
-            <!-- Start Recording -->
-            <div class="p-4 border-b border-gray-700">
-                <h2 class="text-sm font-semibold text-gray-300 mb-2">New Recording</h2>
-                <input id="flow-id" type="text" placeholder="Flow ID (e.g. my_login)"
-                    class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm mb-2 focus:border-blue-500 focus:outline-none">
-                <input id="site-name" type="text" placeholder="Site (e.g. example.com)"
-                    class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm mb-2 focus:border-blue-500 focus:outline-none">
-                <div class="flex gap-2">
-                    <button onclick="startRecording()"
-                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium">
-                        Start Recording
-                    </button>
-                    <button onclick="stopRecording()"
-                        class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium">
-                        Save Flow
-                    </button>
+            <div class="px-4 py-3 border-b border-gray-700 flex items-center gap-2">
+                <div class="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center text-sm font-bold">B</div>
+                <div>
+                    <h1 class="text-base font-bold text-blue-400 leading-tight">BotFlow</h1>
+                    <p class="text-[11px] text-gray-500 leading-tight">Recorder & Runner</p>
                 </div>
             </div>
 
-            <!-- Status -->
-            <div class="p-4 border-b border-gray-700" id="status-section"
-                hx-get="/api/recording-status" hx-trigger="every 2s" hx-swap="innerHTML">
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-gray-500"></span>
-                    <span class="text-sm text-gray-400">Not recording</span>
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-700">
+                <button id="tab-record" onclick="switchTab('record')"
+                    class="flex-1 px-4 py-2.5 text-sm font-medium border-b-2 border-blue-500 text-blue-400 transition-colors">
+                    <span class="mr-1.5">&#9899;</span> Record
+                </button>
+                <button id="tab-run" onclick="switchTab('run')"
+                    class="flex-1 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-300 transition-colors">
+                    <span class="mr-1.5">&#9654;</span> Run
+                </button>
+            </div>
+
+            <!-- ===== RECORD TAB ===== -->
+            <div id="panel-record" class="flex-1 flex flex-col overflow-hidden">
+                <!-- Start Recording -->
+                <div class="p-3 border-b border-gray-700">
+                    <input id="flow-id" type="text" placeholder="Flow ID (e.g. my_login)"
+                        class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm mb-2 focus:border-blue-500 focus:outline-none">
+                    <input id="site-name" type="text" placeholder="Site URL (e.g. https://example.com)"
+                        class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm mb-2 focus:border-blue-500 focus:outline-none">
+                    <div class="flex gap-2">
+                        <button onclick="startRecording()"
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors">
+                            Start Recording
+                        </button>
+                        <button onclick="stopRecording()"
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors">
+                            Save Flow
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recording Status -->
+                <div class="px-3 py-2 border-b border-gray-700" id="status-section">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-gray-500"></span>
+                        <span class="text-xs text-gray-400">Not recording</span>
+                    </div>
+                </div>
+
+                <!-- Steps List -->
+                <div class="flex-1 overflow-y-auto p-3">
+                    <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Recorded Steps</h2>
+                    <div id="steps-list" class="space-y-2">
+                        <p class="text-sm text-gray-500 text-center py-4">No steps recorded yet</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Steps List -->
-            <div class="p-4 flex-1">
-                <h2 class="text-sm font-semibold text-gray-300 mb-2">Recorded Steps</h2>
-                <div id="steps-list" class="space-y-2"
-                    hx-get="/api/current-flow" hx-trigger="every 1s" hx-swap="innerHTML"
-                    hx-select-oob="#steps-content">
-                    <p class="text-sm text-gray-500">No steps recorded yet.</p>
+            <!-- ===== RUN TAB ===== -->
+            <div id="panel-run" class="flex-1 flex flex-col overflow-hidden hidden">
+                <!-- Flow List / Run UI -->
+                <div class="flex-1 overflow-y-auto p-3">
+                    <div id="run-flow-list">
+                        <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Available Flows</h2>
+                        <div id="flows-container" class="space-y-2">
+                            <p class="text-sm text-gray-500 text-center py-4">Loading flows...</p>
+                        </div>
+                    </div>
+
+                    <!-- Selected Flow Detail + Param Form (hidden until flow selected) -->
+                    <div id="run-flow-detail" class="hidden">
+                        <button onclick="backToFlowList()" class="text-xs text-blue-400 hover:text-blue-300 mb-3 flex items-center gap-1">
+                            <span>&#8592;</span> Back to flows
+                        </button>
+                        <div id="flow-detail-header" class="bg-gray-700/50 rounded-lg p-3 mb-3"></div>
+                        <div id="flow-params-form" class="mb-3"></div>
+                        <button id="run-flow-btn" onclick="runSelectedFlow()"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                            <span>&#9654;</span> Run Flow
+                        </button>
+                    </div>
+
+                    <!-- Flow Editor (hidden until Edit clicked) -->
+                    <div id="run-flow-edit" class="hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <button onclick="cancelEdit()" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                                <span>&#8592;</span> Cancel
+                            </button>
+                            <button onclick="saveFlow()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                Save Flow
+                            </button>
+                        </div>
+
+                        <div id="edit-flow-title" class="bg-gray-700/50 rounded-lg p-2.5 mb-3">
+                            <h3 class="text-sm font-bold text-gray-200" id="edit-flow-name"></h3>
+                            <p class="text-xs text-gray-400" id="edit-flow-site"></p>
+                        </div>
+
+                        <!-- Parameters Section -->
+                        <div class="mb-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Parameters</h3>
+                                <button onclick="showAddParamForm()" class="text-[10px] text-blue-400 hover:text-blue-300">+ Add Parameter</button>
+                            </div>
+                            <div id="edit-add-param-form" class="hidden mb-2 bg-gray-700/50 rounded-lg p-2.5">
+                                <div class="flex gap-2 mb-2">
+                                    <input id="new-param-name" type="text" placeholder="name"
+                                        class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs focus:border-blue-500 focus:outline-none">
+                                    <select id="new-param-type"
+                                        class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs focus:border-blue-500 focus:outline-none">
+                                        <option value="string">string</option>
+                                        <option value="number">number</option>
+                                        <option value="boolean">boolean</option>
+                                        <option value="enum">enum</option>
+                                    </select>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="addParam()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs">Add</button>
+                                    <button onclick="hideAddParamForm()" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-xs">Cancel</button>
+                                </div>
+                            </div>
+                            <div id="edit-params-list" class="space-y-1.5"></div>
+                        </div>
+
+                        <!-- Steps Section -->
+                        <div>
+                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Steps</h3>
+                            <div id="edit-steps-list" class="space-y-2"></div>
+                            <button onclick="addWaitStep()" class="w-full mt-2 border border-dashed border-gray-600 hover:border-gray-500 text-gray-500 hover:text-gray-400 rounded-lg py-2 text-xs transition-colors">
+                                + Add Wait Step
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Run Progress (hidden until run starts) -->
+                    <div id="run-progress" class="hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Run Progress</h2>
+                            <span id="run-status-badge" class="px-2 py-0.5 rounded text-xs font-medium bg-yellow-600/20 text-yellow-400">Running</span>
+                        </div>
+                        <div id="run-steps-list" class="space-y-1.5"></div>
+                        <div id="run-summary" class="hidden mt-3 bg-gray-700/50 rounded-lg p-3"></div>
+                        <button onclick="backToFlowList()" class="mt-3 w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+                            Run Another Flow
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Panel: Instructions -->
-        <div class="flex-1 flex items-center justify-center p-8">
-            <div class="max-w-lg text-center">
+        <!-- Right Panel -->
+        <div class="flex-1 flex items-center justify-center p-8" id="right-panel">
+            <!-- Record Instructions (default) -->
+            <div id="right-record" class="max-w-lg text-center">
                 <div class="text-6xl mb-4">&#127916;</div>
                 <h2 class="text-2xl font-bold mb-4">How to Record</h2>
                 <ol class="text-left text-gray-300 space-y-3">
                     <li class="flex gap-3">
-                        <span class="text-blue-400 font-bold">1.</span>
-                        Enter a Flow ID and Site name, then click "Start Recording"
+                        <span class="text-blue-400 font-bold min-w-[20px]">1.</span>
+                        Enter a Flow ID and Site URL, then click "Start Recording"
                     </li>
                     <li class="flex gap-3">
-                        <span class="text-blue-400 font-bold">2.</span>
-                        A browser window will open. Navigate to the target site.
+                        <span class="text-blue-400 font-bold min-w-[20px]">2.</span>
+                        A browser window will open and navigate to the target site
                     </li>
                     <li class="flex gap-3">
-                        <span class="text-blue-400 font-bold">3.</span>
-                        Click "Select" in the floating toolbar to enter selection mode.
+                        <span class="text-blue-400 font-bold min-w-[20px]">3.</span>
+                        Click "Select" in the floating toolbar to enter selection mode
                     </li>
                     <li class="flex gap-3">
-                        <span class="text-blue-400 font-bold">4.</span>
-                        Click elements on the page to capture them as steps.
+                        <span class="text-blue-400 font-bold min-w-[20px]">4.</span>
+                        Click elements on the page to capture them as steps
                     </li>
                     <li class="flex gap-3">
-                        <span class="text-blue-400 font-bold">5.</span>
-                        Use "Extract" mode to capture text content from elements.
+                        <span class="text-blue-400 font-bold min-w-[20px]">5.</span>
+                        Use "Extract" mode to capture text content from elements
                     </li>
                     <li class="flex gap-3">
-                        <span class="text-blue-400 font-bold">6.</span>
-                        Click "Save Flow" when done. A .flow.json file will be created.
+                        <span class="text-blue-400 font-bold min-w-[20px]">6.</span>
+                        Click "Save Flow" when done. A .flow.json file will be created
                     </li>
                 </ol>
+            </div>
+
+            <!-- Run Instructions (shown when Run tab active, no run in progress) -->
+            <div id="right-run" class="max-w-lg text-center hidden">
+                <div class="text-6xl mb-4">&#9654;&#65039;</div>
+                <h2 class="text-2xl font-bold mb-4">Flow Runner</h2>
+                <p class="text-gray-400 mb-4">Select a flow from the left panel to test it in a visible browser. You can provide parameters and watch each step execute in real time.</p>
+                <div class="text-left text-gray-300 space-y-2 text-sm">
+                    <p class="flex gap-2"><span class="text-green-400">&#10003;</span> Runs with a visible browser (headless=false)</p>
+                    <p class="flex gap-2"><span class="text-green-400">&#10003;</span> Auto-heal is disabled for testing</p>
+                    <p class="flex gap-2"><span class="text-green-400">&#10003;</span> Step-by-step progress tracking</p>
+                </div>
+            </div>
+
+            <!-- Edit JSON Preview (shown when editing) -->
+            <div id="right-edit-preview" class="max-w-2xl w-full hidden">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Flow JSON Preview</h3>
+                <div class="bg-gray-800 rounded-lg p-4 overflow-auto max-h-[80vh]">
+                    <pre id="edit-json-preview" class="text-xs font-mono text-gray-300 whitespace-pre-wrap"></pre>
+                </div>
+            </div>
+
+            <!-- Run Results (shown during/after a run) -->
+            <div id="right-run-results" class="max-w-2xl w-full hidden">
+                <div id="run-results-content"></div>
             </div>
         </div>
     </div>
 
     <script>
-        async function startRecording() {
-            const flowId = document.getElementById('flow-id').value;
-            const site = document.getElementById('site-name').value;
-            if (!flowId || !site) { alert('Please enter Flow ID and Site'); return; }
-            const res = await fetch('/api/start-recording', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({flow_id: flowId, site: site})
-            });
-            const data = await res.json();
-            updateStatus(true);
+    // --- State ---
+    let currentTab = 'record';
+    let selectedFlowId = null;
+    let currentRunId = null;
+    let runPollInterval = null;
+    let stepsPollInterval = null;
+
+    // --- Action icons & colors ---
+    const ACTION_CONFIG = {
+        navigate: { icon: '&#128279;', color: 'bg-blue-600/20 text-blue-400', label: 'NAV' },
+        click:    { icon: '&#128433;', color: 'bg-green-600/20 text-green-400', label: 'CLICK' },
+        fill:     { icon: '&#9998;',  color: 'bg-yellow-600/20 text-yellow-400', label: 'FILL' },
+        extract:  { icon: '&#128196;', color: 'bg-purple-600/20 text-purple-400', label: 'EXTRACT' },
+        wait:     { icon: '&#9203;',  color: 'bg-gray-600/20 text-gray-400', label: 'WAIT' },
+        screenshot: { icon: '&#128247;', color: 'bg-pink-600/20 text-pink-400', label: 'SHOT' },
+        select:   { icon: '&#9745;',  color: 'bg-indigo-600/20 text-indigo-400', label: 'SELECT' },
+        hover:    { icon: '&#128072;', color: 'bg-cyan-600/20 text-cyan-400', label: 'HOVER' },
+        scroll:   { icon: '&#8597;',  color: 'bg-orange-600/20 text-orange-400', label: 'SCROLL' },
+        type:     { icon: '&#9000;', color: 'bg-amber-600/20 text-amber-400', label: 'TYPE' },
+    };
+
+    function getActionConfig(action) {
+        return ACTION_CONFIG[action] || { icon: '&#9679;', color: 'bg-gray-600/20 text-gray-400', label: action?.toUpperCase() || '?' };
+    }
+
+    // --- Tab switching ---
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('panel-record').classList.toggle('hidden', tab !== 'record');
+        document.getElementById('panel-run').classList.toggle('hidden', tab !== 'run');
+
+        document.getElementById('tab-record').className = tab === 'record'
+            ? 'flex-1 px-4 py-2.5 text-sm font-medium border-b-2 border-blue-500 text-blue-400 transition-colors'
+            : 'flex-1 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-300 transition-colors';
+        document.getElementById('tab-run').className = tab === 'run'
+            ? 'flex-1 px-4 py-2.5 text-sm font-medium border-b-2 border-blue-500 text-blue-400 transition-colors'
+            : 'flex-1 px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-300 transition-colors';
+
+        // Right panel
+        document.getElementById('right-record').classList.toggle('hidden', tab !== 'record');
+        document.getElementById('right-run').classList.toggle('hidden', tab !== 'run' || currentRunId !== null);
+        document.getElementById('right-run-results').classList.toggle('hidden', tab !== 'run' || currentRunId === null);
+
+        if (tab === 'run') {
+            loadFlows();
+        }
+    }
+
+    // --- Recording functions ---
+    async function startRecording() {
+        const flowId = document.getElementById('flow-id').value.trim();
+        const site = document.getElementById('site-name').value.trim();
+        if (!flowId || !site) { alert('Please enter Flow ID and Site URL'); return; }
+        await fetch('/api/start-recording', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({flow_id: flowId, site: site})
+        });
+        updateRecordingStatus(true);
+    }
+
+    async function stopRecording() {
+        const res = await fetch('/api/stop-recording', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (data.status === 'saved') {
+            alert('Flow saved to ' + data.path + ' (' + data.step_count + ' steps)');
+            updateRecordingStatus(false);
+        } else {
+            alert('Error: ' + JSON.stringify(data));
+        }
+    }
+
+    function updateRecordingStatus(active) {
+        const section = document.getElementById('status-section');
+        const color = active ? 'bg-red-500' : 'bg-gray-500';
+        const text = active ? 'Recording...' : 'Not recording';
+        section.innerHTML = `<div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full ${color} ${active ? 'animate-pulse' : ''}"></span>
+            <span class="text-xs ${active ? 'text-red-400' : 'text-gray-400'}">${text}</span>
+        </div>`;
+    }
+
+    // --- Enhanced step card rendering ---
+    function renderStepCard(step, index) {
+        const cfg = getActionConfig(step.action);
+        const target = step.target || {};
+        const selectors = [];
+        if (target.css) selectors.push({ label: 'CSS', value: target.css });
+        if (target.xpath) selectors.push({ label: 'XPath', value: target.xpath });
+        if (target.text_content) selectors.push({ label: 'Text', value: target.text_content });
+        if (target.aria_label) selectors.push({ label: 'Aria', value: target.aria_label });
+
+        // Primary info line
+        let primaryInfo = '';
+        if (step.action === 'navigate') {
+            primaryInfo = step.url || '';
+        } else if (step.action === 'fill' && step.value) {
+            primaryInfo = step.value;
+        } else if (target.css) {
+            primaryInfo = target.css;
         }
 
-        async function stopRecording() {
-            const res = await fetch('/api/stop-recording', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({})
-            });
+        const hasDetails = selectors.length > 0;
+        const detailsId = `step-details-${index}`;
+
+        return `
+        <div class="bg-gray-700/60 rounded-lg overflow-hidden">
+            <div class="p-2.5">
+                <div class="flex items-start gap-2.5">
+                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-600 flex items-center justify-center text-[11px] font-bold text-gray-300 mt-0.5">${index + 1}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${cfg.color}">${cfg.label}</span>
+                            <span class="text-xs text-gray-300 truncate">${step.description || step.action}</span>
+                        </div>
+                        ${primaryInfo ? `<p class="text-[11px] font-mono text-gray-400 truncate">${escapeHtml(primaryInfo)}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+            ${hasDetails ? `
+            <div class="border-t border-gray-600/50">
+                <button onclick="toggleDetails('${detailsId}')" class="w-full px-2.5 py-1 text-[10px] text-gray-500 hover:text-gray-400 text-left flex items-center gap-1 transition-colors">
+                    <span id="${detailsId}-arrow" class="transition-transform">&#9654;</span> Selectors (${selectors.length})
+                </button>
+                <div id="${detailsId}" class="step-details">
+                    <div class="px-2.5 pb-2 space-y-1">
+                        ${selectors.map(s => `
+                            <div class="flex gap-2 items-start">
+                                <span class="text-[10px] font-medium text-gray-500 w-10 flex-shrink-0 pt-px">${s.label}</span>
+                                <code class="text-[11px] font-mono text-gray-400 break-all">${escapeHtml(s.value)}</code>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>` : ''}
+        </div>`;
+    }
+
+    function toggleDetails(id) {
+        const el = document.getElementById(id);
+        const arrow = document.getElementById(id + '-arrow');
+        el.classList.toggle('open');
+        arrow.style.transform = el.classList.contains('open') ? 'rotate(90deg)' : '';
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    }
+
+    // --- Poll recorded steps ---
+    stepsPollInterval = setInterval(async () => {
+        if (currentTab !== 'record') return;
+        try {
+            const res = await fetch('/api/current-flow');
             const data = await res.json();
-            if (data.status === 'saved') {
-                alert('Flow saved to ' + data.path + ' (' + data.step_count + ' steps)');
-                updateStatus(false);
+            const list = document.getElementById('steps-list');
+            if (data.steps && data.steps.length > 0) {
+                list.innerHTML = data.steps.map((s, i) => renderStepCard(s, i)).join('');
+            } else if (!data.active) {
+                list.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No steps recorded yet</p>';
+            }
+        } catch(e) {}
+    }, 1000);
+
+    // --- Flow Runner functions ---
+    async function loadFlows() {
+        try {
+            const res = await fetch('/api/flows');
+            const flows = await res.json();
+            const container = document.getElementById('flows-container');
+            if (flows.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No flows found in flows/ directory</p>';
+                return;
+            }
+            container.innerHTML = flows.map(f => `
+                <div class="flex items-center gap-1.5">
+                    <button onclick="selectFlow('${f.flow_id}')" class="flex-1 text-left bg-gray-700/60 hover:bg-gray-700 rounded-lg p-3 transition-colors group">
+                        <div class="flex items-start justify-between mb-1">
+                            <span class="text-sm font-medium text-gray-200 group-hover:text-white">${escapeHtml(f.flow_id)}</span>
+                            <span class="text-[10px] text-gray-500">${f.step_count} steps</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400">${escapeHtml(f.site)}</span>
+                            ${Object.keys(f.params).length > 0 ? `<span class="text-[10px] bg-gray-600/50 text-gray-400 px-1.5 py-0.5 rounded">${Object.keys(f.params).length} params</span>` : ''}
+                        </div>
+                    </button>
+                    <button onclick="event.stopPropagation(); deleteFlow('${f.flow_id}')" class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-600/10 transition-colors" title="Delete flow">&#128465;</button>
+                </div>
+            `).join('');
+        } catch(e) {
+            document.getElementById('flows-container').innerHTML = '<p class="text-sm text-red-400 text-center py-4">Failed to load flows</p>';
+        }
+    }
+
+    async function selectFlow(flowId) {
+        selectedFlowId = flowId;
+        document.getElementById('run-flow-list').classList.add('hidden');
+        document.getElementById('run-flow-detail').classList.remove('hidden');
+        document.getElementById('run-progress').classList.add('hidden');
+
+        try {
+            const res = await fetch(`/api/flows/${flowId}`);
+            const flow = await res.json();
+
+            // Header
+            document.getElementById('flow-detail-header').innerHTML = `
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-200">${escapeHtml(flow.flow_id)}</h3>
+                        <p class="text-xs text-gray-400">${escapeHtml(flow.site)}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="editFlow('${flow.flow_id}')" class="bg-gray-600 hover:bg-gray-500 text-white px-2.5 py-1 rounded text-xs font-medium transition-colors">Edit</button>
+                        <span class="text-[10px] text-gray-500">v${flow.version} &middot; ${flow.step_count} steps</span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-1 mt-2">
+                    ${flow.steps.map(s => {
+                        const cfg = getActionConfig(s.action);
+                        return `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${cfg.color}" title="${escapeHtml(s.description || '')}">${cfg.label}</span>`;
+                    }).join('')}
+                </div>
+            `;
+
+            // Params form
+            const paramEntries = Object.entries(flow.params);
+            if (paramEntries.length === 0) {
+                document.getElementById('flow-params-form').innerHTML = '<p class="text-xs text-gray-500">No parameters required</p>';
             } else {
-                alert('Error: ' + JSON.stringify(data));
+                document.getElementById('flow-params-form').innerHTML = `
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Parameters</h3>
+                    ${paramEntries.map(([name, spec]) => `
+                        <div class="mb-2">
+                            <label class="text-xs text-gray-300 mb-1 block">
+                                ${escapeHtml(name)}
+                                ${spec.required ? '<span class="text-red-400">*</span>' : ''}
+                                <span class="text-gray-500 text-[10px]">(${spec.type})</span>
+                            </label>
+                            ${spec.type === 'enum' && spec.values ?
+                                `<select id="param-${name}" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none">
+                                    ${spec.values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('')}
+                                </select>` :
+                                spec.type === 'boolean' ?
+                                `<select id="param-${name}" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none">
+                                    <option value="true">true</option>
+                                    <option value="false">false</option>
+                                </select>` :
+                                `<input id="param-${name}" type="${spec.type === 'number' ? 'number' : 'text'}"
+                                    placeholder="${spec.default !== null && spec.default !== undefined ? spec.default : ''}"
+                                    class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none">`
+                            }
+                        </div>
+                    `).join('')}
+                `;
+            }
+
+            // Store flow data for run
+            document.getElementById('run-flow-btn').dataset.flow = JSON.stringify(flow);
+        } catch(e) {
+            document.getElementById('flow-detail-header').innerHTML = '<p class="text-red-400 text-sm">Failed to load flow details</p>';
+        }
+    }
+
+    function backToFlowList() {
+        selectedFlowId = null;
+        currentRunId = null;
+        if (runPollInterval) { clearInterval(runPollInterval); runPollInterval = null; }
+        document.getElementById('run-flow-list').classList.remove('hidden');
+        document.getElementById('run-flow-detail').classList.add('hidden');
+        document.getElementById('run-progress').classList.add('hidden');
+
+        // Right panel
+        document.getElementById('right-run').classList.remove('hidden');
+        document.getElementById('right-run-results').classList.add('hidden');
+
+        loadFlows();
+    }
+
+    async function deleteFlow(flowId) {
+        if (!confirm(`Delete flow "${flowId}"?`)) return;
+        try {
+            const res = await fetch(`/api/flows/${flowId}`, { method: 'DELETE' });
+            if (!res.ok) {
+                const data = await res.json();
+                alert('Delete failed: ' + (data.detail || 'Unknown error'));
+                return;
+            }
+            loadFlows();
+        } catch(e) {
+            alert('Delete error: ' + e.message);
+        }
+    }
+
+    async function runSelectedFlow() {
+        const btn = document.getElementById('run-flow-btn');
+        const flow = JSON.parse(btn.dataset.flow);
+
+        // Collect params
+        const params = {};
+        for (const [name, spec] of Object.entries(flow.params)) {
+            const el = document.getElementById(`param-${name}`);
+            if (el) {
+                let val = el.value;
+                // Use default when input is empty
+                if (val === '' && spec.default !== null && spec.default !== undefined) {
+                    val = String(spec.default);
+                }
+                if (spec.type === 'number') val = parseFloat(val) || 0;
+                else if (spec.type === 'boolean') val = val === 'true';
+                if (val !== '' && val !== null) params[name] = val;
             }
         }
 
-        function updateStatus(active) {
-            const section = document.getElementById('status-section');
-            const color = active ? 'bg-red-500' : 'bg-gray-500';
-            const text = active ? 'Recording...' : 'Not recording';
-            section.innerHTML = `<div class="flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full ${color} ${active ? 'animate-pulse' : ''}"></span>
-                <span class="text-sm ${active ? 'text-red-400' : 'text-gray-400'}">${text}</span>
-            </div>`;
+        // Start run
+        try {
+            const res = await fetch('/api/run-flow', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ flow_id: flow.flow_id, params })
+            });
+            const data = await res.json();
+            if (!res.ok) { alert(data.detail || 'Failed to start run'); return; }
+
+            currentRunId = data.run_id;
+
+            // Switch to progress view
+            document.getElementById('run-flow-detail').classList.add('hidden');
+            document.getElementById('run-progress').classList.remove('hidden');
+
+            // Right panel
+            document.getElementById('right-run').classList.add('hidden');
+            document.getElementById('right-run-results').classList.remove('hidden');
+            document.getElementById('run-results-content').innerHTML = `
+                <div class="text-center py-12">
+                    <div class="inline-block w-10 h-10 border-2 border-blue-400 border-t-transparent rounded-full spinner mb-4"></div>
+                    <p class="text-gray-400">Running <span class="text-blue-400 font-medium">${escapeHtml(flow.flow_id)}</span>...</p>
+                </div>
+            `;
+
+            // Start polling
+            pollRunStatus();
+            runPollInterval = setInterval(pollRunStatus, 1000);
+        } catch(e) {
+            alert('Error starting flow: ' + e.message);
+        }
+    }
+
+    async function pollRunStatus() {
+        if (!currentRunId) return;
+        try {
+            const res = await fetch(`/api/run-status/${currentRunId}`);
+            const run = await res.json();
+
+            renderRunSteps(run);
+            updateRunStatusBadge(run.status);
+
+            if (run.status !== 'running') {
+                clearInterval(runPollInterval);
+                runPollInterval = null;
+                renderRunSummary(run);
+                renderRightRunResults(run);
+            }
+        } catch(e) {}
+    }
+
+    function renderRunSteps(run) {
+        const list = document.getElementById('run-steps-list');
+        list.innerHTML = run.steps.map((s, i) => {
+            const cfg = getActionConfig(s.action);
+            let statusIcon, statusClass;
+
+            switch(s.status) {
+                case 'success': case 'fallback': case 'healed':
+                    statusIcon = '&#10003;'; statusClass = 'text-green-400'; break;
+                case 'failed':
+                    statusIcon = '&#10007;'; statusClass = 'text-red-400'; break;
+                case 'running':
+                    statusIcon = '<span class="inline-block w-3 h-3 border border-blue-400 border-t-transparent rounded-full spinner"></span>';
+                    statusClass = 'text-blue-400'; break;
+                case 'skipped':
+                    statusIcon = '&#8212;'; statusClass = 'text-gray-500'; break;
+                default:
+                    statusIcon = '&#9679;'; statusClass = 'text-gray-600'; break;
+            }
+
+            const isPending = s.status === 'pending';
+            const opacity = isPending ? 'opacity-40' : '';
+
+            return `
+            <div class="flex items-center gap-2.5 py-1.5 px-2 rounded ${s.status === 'running' ? 'bg-blue-600/10' : s.status === 'failed' ? 'bg-red-600/10' : ''} ${opacity}">
+                <span class="w-5 text-center text-xs ${statusClass}">${statusIcon}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${cfg.color}">${cfg.label}</span>
+                <span class="flex-1 text-xs text-gray-300 truncate">${escapeHtml(s.description || s.id)}</span>
+                ${s.duration_ms ? `<span class="text-[10px] text-gray-500">${Math.round(s.duration_ms)}ms</span>` : ''}
+            </div>
+            ${s.extracted_value != null ? `<div class="ml-7 px-2 py-1 mb-1 bg-purple-900/30 rounded text-[11px] text-purple-300 font-mono">${escapeHtml(String(s.extracted_value))}</div>` : ''}
+            ${s.error ? `<div class="ml-7 px-2 py-1 mb-1 bg-red-900/30 rounded text-[11px] text-red-400 font-mono break-all">${escapeHtml(s.error)}</div>` : ''}`;
+        }).join('');
+    }
+
+    function updateRunStatusBadge(status) {
+        const badge = document.getElementById('run-status-badge');
+        switch(status) {
+            case 'running':
+                badge.className = 'px-2 py-0.5 rounded text-xs font-medium bg-yellow-600/20 text-yellow-400';
+                badge.textContent = 'Running'; break;
+            case 'success':
+                badge.className = 'px-2 py-0.5 rounded text-xs font-medium bg-green-600/20 text-green-400';
+                badge.textContent = 'Success'; break;
+            case 'failed':
+                badge.className = 'px-2 py-0.5 rounded text-xs font-medium bg-red-600/20 text-red-400';
+                badge.textContent = 'Failed'; break;
+            case 'cancelled':
+                badge.className = 'px-2 py-0.5 rounded text-xs font-medium bg-gray-600/20 text-gray-400';
+                badge.textContent = 'Cancelled'; break;
+        }
+    }
+
+    function renderRunSummary(run) {
+        const summary = document.getElementById('run-summary');
+        summary.classList.remove('hidden');
+
+        const successSteps = run.steps.filter(s => s.status === 'success' || s.status === 'fallback' || s.status === 'healed').length;
+        const failedSteps = run.steps.filter(s => s.status === 'failed').length;
+        const duration = run.duration_ms ? `${(run.duration_ms / 1000).toFixed(1)}s` : '-';
+
+        summary.innerHTML = `
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div>
+                    <div class="text-lg font-bold text-green-400">${successSteps}</div>
+                    <div class="text-[10px] text-gray-500">Passed</div>
+                </div>
+                <div>
+                    <div class="text-lg font-bold text-red-400">${failedSteps}</div>
+                    <div class="text-[10px] text-gray-500">Failed</div>
+                </div>
+                <div>
+                    <div class="text-lg font-bold text-gray-300">${duration}</div>
+                    <div class="text-[10px] text-gray-500">Duration</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderRightRunResults(run) {
+        const content = document.getElementById('run-results-content');
+        const isSuccess = run.status === 'success';
+        const statusColor = isSuccess ? 'text-green-400' : 'text-red-400';
+        const statusIcon = isSuccess ? '&#10003;' : '&#10007;';
+
+        let returnsHtml = '';
+        if (run.returns && Object.keys(run.returns).length > 0) {
+            returnsHtml = `
+                <div class="mt-6">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Return Values</h3>
+                    <div class="bg-gray-800 rounded-lg p-4 font-mono text-sm">
+                        <pre class="text-gray-300 whitespace-pre-wrap">${escapeHtml(JSON.stringify(run.returns, null, 2))}</pre>
+                    </div>
+                </div>
+            `;
         }
 
-        // Poll for steps
-        setInterval(async () => {
-            try {
-                const res = await fetch('/api/current-flow');
-                const data = await res.json();
-                const list = document.getElementById('steps-list');
-                if (data.steps && data.steps.length > 0) {
-                    list.innerHTML = data.steps.map((s, i) => `
-                        <div class="bg-gray-700 rounded p-2 text-sm">
-                            <div class="flex justify-between items-center">
-                                <span class="text-blue-300 font-mono">${s.id}</span>
-                                <span class="px-2 py-0.5 rounded text-xs bg-gray-600">${s.action}</span>
-                            </div>
-                            <p class="text-gray-400 text-xs mt-1">${s.description || ''}</p>
-                            <p class="text-gray-500 text-xs font-mono mt-1">${s.target?.css || ''}</p>
+        let errorHtml = '';
+        if (run.error) {
+            errorHtml = `
+                <div class="mt-4 bg-red-900/20 border border-red-800/50 rounded-lg p-4">
+                    <h3 class="text-xs font-semibold text-red-400 mb-1">Error</h3>
+                    <p class="text-sm text-red-300 font-mono">${escapeHtml(run.error)}</p>
+                </div>
+            `;
+        }
+
+        content.innerHTML = `
+            <div class="text-center mb-6">
+                <div class="text-5xl mb-3 ${statusColor}">${statusIcon}</div>
+                <h2 class="text-xl font-bold ${statusColor}">${isSuccess ? 'Flow Completed' : 'Flow Failed'}</h2>
+                <p class="text-gray-400 text-sm mt-1">${escapeHtml(run.flow_id)} &middot; ${(run.duration_ms / 1000).toFixed(1)}s</p>
+            </div>
+
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Step Results</h3>
+                <div class="space-y-1">
+                    ${run.steps.map((s, i) => {
+                        const cfg = getActionConfig(s.action);
+                        let icon, iconClass;
+                        switch(s.status) {
+                            case 'success': case 'fallback': case 'healed':
+                                icon = '&#10003;'; iconClass = 'text-green-400'; break;
+                            case 'failed':
+                                icon = '&#10007;'; iconClass = 'text-red-400'; break;
+                            case 'skipped':
+                                icon = '&#8212;'; iconClass = 'text-gray-500'; break;
+                            default:
+                                icon = '&#9679;'; iconClass = 'text-gray-600'; break;
+                        }
+                        return `
+                        <div class="flex items-center gap-2 py-1">
+                            <span class="w-5 text-center text-xs ${iconClass}">${icon}</span>
+                            <span class="text-xs text-gray-500 w-5">${i+1}.</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${cfg.color}">${cfg.label}</span>
+                            <span class="flex-1 text-xs text-gray-300">${escapeHtml(s.description || s.id)}</span>
+                            ${s.duration_ms ? `<span class="text-[10px] text-gray-500">${Math.round(s.duration_ms)}ms</span>` : ''}
                         </div>
-                    `).join('');
+                        ${s.extracted_value != null ? `<div class="ml-12 py-1 text-[11px] text-purple-300 font-mono">${escapeHtml(String(s.extracted_value))}</div>` : ''}
+                        ${s.error ? `<div class="ml-12 py-1 text-[11px] text-red-400 font-mono">${escapeHtml(s.error)}</div>` : ''}`;
+                    }).join('')}
+                </div>
+            </div>
+            ${errorHtml}
+            ${returnsHtml}
+        `;
+    }
+
+    // --- Flow Editor functions ---
+    let editingFlow = null;
+
+    async function editFlow(flowId) {
+        try {
+            const res = await fetch(`/api/flows/${flowId}`);
+            editingFlow = await res.json();
+
+            // Switch to edit view
+            document.getElementById('run-flow-list').classList.add('hidden');
+            document.getElementById('run-flow-detail').classList.add('hidden');
+            document.getElementById('run-progress').classList.add('hidden');
+            document.getElementById('run-flow-edit').classList.remove('hidden');
+
+            // Right panel: show JSON preview
+            document.getElementById('right-record').classList.add('hidden');
+            document.getElementById('right-run').classList.add('hidden');
+            document.getElementById('right-run-results').classList.add('hidden');
+            document.getElementById('right-edit-preview').classList.remove('hidden');
+
+            renderEditView();
+        } catch(e) {
+            alert('Failed to load flow: ' + e.message);
+        }
+    }
+
+    function renderEditView() {
+        if (!editingFlow) return;
+
+        document.getElementById('edit-flow-name').textContent = editingFlow.flow_id;
+        document.getElementById('edit-flow-site').textContent = editingFlow.site;
+
+        renderParamsList();
+        renderEditSteps();
+        updateJsonPreview();
+    }
+
+    function renderParamsList() {
+        const container = document.getElementById('edit-params-list');
+        const params = editingFlow.params || {};
+        const entries = Object.entries(params);
+
+        if (entries.length === 0) {
+            container.innerHTML = '<p class="text-[11px] text-gray-500">No parameters defined</p>';
+            return;
+        }
+
+        container.innerHTML = entries.map(([name, spec]) => `
+            <div class="flex items-center gap-2 bg-gray-700/40 rounded px-2.5 py-1.5">
+                <code class="text-xs text-blue-300 flex-1">${escapeHtml(name)}</code>
+                <span class="text-[10px] text-gray-500">${spec.type}</span>
+                ${spec.required ? '<span class="text-[10px] text-red-400">req</span>' : '<span class="text-[10px] text-gray-600">opt</span>'}
+                ${spec.default !== null && spec.default !== undefined ? `<span class="text-[10px] text-gray-500" title="default: ${escapeHtml(String(spec.default))}">=${escapeHtml(String(spec.default).substring(0, 15))}</span>` : ''}
+                <button onclick="removeParam('${escapeHtml(name)}')" class="text-red-500 hover:text-red-400 text-xs" title="Remove parameter">&#10007;</button>
+            </div>
+        `).join('');
+    }
+
+    function renderEditSteps() {
+        const container = document.getElementById('edit-steps-list');
+        container.innerHTML = editingFlow.steps.map((step, i) => renderEditStepCard(step, i)).join('');
+    }
+
+    function renderEditStepCard(step, index) {
+        const cfg = getActionConfig(step.action);
+        const target = step.target || {};
+
+        // Build editable fields
+        let fieldsHtml = '';
+
+        // Description
+        fieldsHtml += `
+            <div class="mb-1.5">
+                <label class="text-[10px] text-gray-500">Description</label>
+                <input type="text" value="${escapeHtml(step.description || '')}"
+                    onchange="updateStepField(${index}, 'description', this.value)"
+                    class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs focus:border-blue-500 focus:outline-none">
+            </div>`;
+
+        // URL for navigate steps
+        if (step.action === 'navigate' || step.url) {
+            const isUrlParam = step.url && step.url.startsWith('{{') && step.url.endsWith('}}');
+            fieldsHtml += `
+                <div class="mb-1.5">
+                    <label class="text-[10px] text-gray-500">URL</label>
+                    <div class="flex gap-1.5">
+                        <input type="text" value="${escapeHtml(step.url || '')}"
+                            id="step-url-${index}"
+                            onchange="updateStepField(${index}, 'url', this.value)"
+                            class="flex-1 bg-gray-700 border ${isUrlParam ? 'border-blue-500/50' : 'border-gray-600'} rounded px-2 py-1 text-xs font-mono focus:border-blue-500 focus:outline-none ${isUrlParam ? 'text-blue-300' : ''}">
+                        ${!isUrlParam ? `<button onclick="parameterizeField(${index}, 'url')" class="bg-blue-600/30 hover:bg-blue-600/50 text-blue-400 px-2 py-1 rounded text-[10px] font-medium transition-colors whitespace-nowrap" title="Convert to parameter">&#8594; Param</button>` : ''}
+                    </div>
+                </div>`;
+        }
+
+        // Value for fill/type steps
+        if (step.action === 'fill' || step.action === 'type' || step.value !== null && step.value !== undefined) {
+            const isParam = step.value && step.value.startsWith('{{') && step.value.endsWith('}}');
+            fieldsHtml += `
+                <div class="mb-1.5">
+                    <label class="text-[10px] text-gray-500">Value</label>
+                    <div class="flex gap-1.5">
+                        <input type="text" value="${escapeHtml(step.value || '')}"
+                            id="step-value-${index}"
+                            onchange="updateStepField(${index}, 'value', this.value)"
+                            class="flex-1 bg-gray-700 border ${isParam ? 'border-blue-500/50' : 'border-gray-600'} rounded px-2 py-1 text-xs font-mono focus:border-blue-500 focus:outline-none ${isParam ? 'text-blue-300' : ''}">
+                        ${!isParam ? `<button onclick="parameterizeField(${index}, 'value')" class="bg-blue-600/30 hover:bg-blue-600/50 text-blue-400 px-2 py-1 rounded text-[10px] font-medium transition-colors whitespace-nowrap" title="Convert to parameter">&#8594; Param</button>` : ''}
+                    </div>
+                </div>`;
+        }
+
+        // Target selectors
+        if (target && Object.keys(target).length > 0) {
+            const selectorFields = ['css', 'xpath', 'text_content', 'aria_label'];
+            const hasSelectors = selectorFields.some(k => target[k]);
+            if (hasSelectors) {
+                fieldsHtml += `<div class="mb-1.5"><label class="text-[10px] text-gray-500">Selectors</label>`;
+                for (const key of selectorFields) {
+                    if (target[key]) {
+                        fieldsHtml += `
+                            <div class="flex gap-1.5 mb-1">
+                                <span class="text-[10px] text-gray-500 w-10 flex-shrink-0 pt-1">${key === 'text_content' ? 'Text' : key === 'aria_label' ? 'Aria' : key.toUpperCase()}</span>
+                                <input type="text" value="${escapeHtml(target[key])}"
+                                    onchange="updateStepTarget(${index}, '${key}', this.value)"
+                                    class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-[11px] font-mono focus:border-blue-500 focus:outline-none">
+                            </div>`;
+                    }
                 }
-            } catch(e) {}
-        }, 1000);
+                fieldsHtml += `</div>`;
+            }
+        }
+
+        // Timeout
+        if (step.action === 'wait') {
+            fieldsHtml += `
+                <div class="mb-1.5">
+                    <label class="text-[10px] text-gray-500">Timeout (ms)</label>
+                    <input type="number" value="${step.timeout_ms || 10000}"
+                        onchange="updateStepField(${index}, 'timeout_ms', parseInt(this.value))"
+                        class="w-24 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs focus:border-blue-500 focus:outline-none">
+                </div>`;
+        }
+
+        // Parameterize inline form (hidden by default)
+        const paramFormId = `param-form-${index}`;
+
+        return `
+        <div class="bg-gray-700/60 rounded-lg overflow-hidden">
+            <div class="p-2.5">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="flex-shrink-0 w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center text-[10px] font-bold text-gray-300">${index + 1}</div>
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${cfg.color}">${cfg.label}</span>
+                    <span class="flex-1 text-xs text-gray-300 truncate">${escapeHtml(step.description || step.action)}</span>
+                    <button onclick="deleteStep(${index})" class="text-red-500 hover:text-red-400 text-xs transition-colors" title="Delete step">&#10007;</button>
+                </div>
+                ${fieldsHtml}
+                <!-- Inline parameterize form -->
+                <div id="${paramFormId}" class="hidden mt-2 bg-gray-800/50 rounded p-2">
+                    <input type="hidden" id="${paramFormId}-field" value="">
+                    <p class="text-[10px] text-gray-400 mb-1.5">Create parameter from this field:</p>
+                    <div class="flex gap-1.5 mb-1.5">
+                        <input type="text" placeholder="param name" id="${paramFormId}-name"
+                            class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs focus:border-blue-500 focus:outline-none">
+                        <select id="${paramFormId}-type"
+                            class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs focus:border-blue-500 focus:outline-none">
+                            <option value="string">string</option>
+                            <option value="number">number</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick="confirmParameterize(${index})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px]">Create</button>
+                        <button onclick="cancelParameterize(${index})" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-[10px]">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function updateStepField(index, field, value) {
+        if (!editingFlow) return;
+        editingFlow.steps[index][field] = value;
+        updateJsonPreview();
+    }
+
+    function updateStepTarget(index, key, value) {
+        if (!editingFlow) return;
+        if (!editingFlow.steps[index].target) editingFlow.steps[index].target = {};
+        editingFlow.steps[index].target[key] = value || null;
+        updateJsonPreview();
+    }
+
+    function deleteStep(index) {
+        if (!editingFlow || editingFlow.steps.length <= 1) {
+            alert('A flow must have at least one step');
+            return;
+        }
+        editingFlow.steps.splice(index, 1);
+        // Re-number step IDs
+        editingFlow.steps.forEach((s, i) => { s.id = `s_${String(i + 1).padStart(3, '0')}`; });
+        renderEditSteps();
+        updateJsonPreview();
+    }
+
+    function addWaitStep() {
+        if (!editingFlow) return;
+        const idx = editingFlow.steps.length + 1;
+        editingFlow.steps.push({
+            id: `s_${String(idx).padStart(3, '0')}`,
+            action: 'wait',
+            description: 'Wait for page load',
+            target: null,
+            url: null,
+            value: null,
+            optional: true,
+            timeout_ms: 3000,
+        });
+        renderEditSteps();
+        updateJsonPreview();
+    }
+
+    function parameterizeField(index, field) {
+        const formId = `param-form-${index}`;
+        document.getElementById(formId).classList.remove('hidden');
+        document.getElementById(`${formId}-field`).value = field;
+        // Suggest a param name
+        const step = editingFlow.steps[index];
+        const nameInput = document.getElementById(`${formId}-name`);
+        if (field === 'url') {
+            nameInput.value = 'url';
+        } else if (step.description) {
+            nameInput.value = step.description.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+        }
+        nameInput.focus();
+    }
+
+    function cancelParameterize(index) {
+        document.getElementById(`param-form-${index}`).classList.add('hidden');
+    }
+
+    function confirmParameterize(index) {
+        const formId = `param-form-${index}`;
+        const name = document.getElementById(`${formId}-name`).value.trim();
+        const type = document.getElementById(`${formId}-type`).value;
+        const field = document.getElementById(`${formId}-field`).value || 'value';
+
+        if (!name) { alert('Please enter a parameter name'); return; }
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) { alert('Invalid parameter name. Use letters, numbers, underscores.'); return; }
+
+        const oldValue = editingFlow.steps[index][field] || '';
+
+        // Add param to flow
+        if (!editingFlow.params) editingFlow.params = {};
+        editingFlow.params[name] = {
+            type: type,
+            required: true,
+            default: oldValue || null,
+            values: null,
+        };
+
+        // Replace field with template
+        editingFlow.steps[index][field] = `{{params.${name}}}`;
+
+        // Update description if it contained the old hardcoded value
+        if (oldValue && editingFlow.steps[index].description) {
+            editingFlow.steps[index].description =
+                editingFlow.steps[index].description.replace(oldValue, `{{params.${name}}}`);
+        }
+
+        // Hide form, re-render
+        document.getElementById(formId).classList.add('hidden');
+        renderParamsList();
+        renderEditSteps();
+        updateJsonPreview();
+    }
+
+    function removeParam(name) {
+        if (!editingFlow || !editingFlow.params) return;
+        const template = `{{params.${name}}}`;
+        const param = editingFlow.params[name];
+        const defaultVal = param && param.default != null ? String(param.default) : '';
+        // Revert any step fields that reference this param
+        for (const step of editingFlow.steps) {
+            if (step.value === template) step.value = defaultVal;
+            if (step.url === template) step.url = defaultVal;
+        }
+        delete editingFlow.params[name];
+        renderParamsList();
+        renderEditSteps();
+        updateJsonPreview();
+    }
+
+    function showAddParamForm() {
+        document.getElementById('edit-add-param-form').classList.remove('hidden');
+        document.getElementById('new-param-name').focus();
+    }
+
+    function hideAddParamForm() {
+        document.getElementById('edit-add-param-form').classList.add('hidden');
+        document.getElementById('new-param-name').value = '';
+    }
+
+    function addParam() {
+        const name = document.getElementById('new-param-name').value.trim();
+        const type = document.getElementById('new-param-type').value;
+        if (!name) { alert('Please enter a parameter name'); return; }
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) { alert('Invalid parameter name.'); return; }
+        if (!editingFlow.params) editingFlow.params = {};
+        if (editingFlow.params[name]) { alert('Parameter already exists'); return; }
+        editingFlow.params[name] = { type: type, required: true, default: null, values: null };
+        hideAddParamForm();
+        renderParamsList();
+        updateJsonPreview();
+    }
+
+    async function saveFlow() {
+        if (!editingFlow) return;
+
+        // Build the flow payload
+        const payload = {
+            flow_id: editingFlow.flow_id,
+            site: editingFlow.site,
+            version: editingFlow.version || 1,
+            params: editingFlow.params || {},
+            returns: editingFlow.returns || {},
+            returns_mapping: editingFlow.returns_mapping || {},
+            steps: editingFlow.steps.map(s => {
+                const step = {
+                    id: s.id,
+                    action: s.action,
+                    description: s.description || null,
+                    url: s.url || null,
+                    value: s.value || null,
+                    optional: s.optional || false,
+                    timeout_ms: s.timeout_ms || 10000,
+                };
+                if (s.target && Object.keys(s.target).length > 0) {
+                    step.target = s.target;
+                }
+                return step;
+            }),
+        };
+
+        try {
+            const res = await fetch(`/api/flows/${editingFlow.flow_id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert('Save failed: ' + (data.detail || JSON.stringify(data)));
+                return;
+            }
+
+            editingFlow = null;
+
+            // Switch back to flow detail
+            document.getElementById('run-flow-edit').classList.add('hidden');
+            document.getElementById('right-edit-preview').classList.add('hidden');
+
+            // Reload and show the flow detail
+            await selectFlow(payload.flow_id);
+        } catch(e) {
+            alert('Save error: ' + e.message);
+        }
+    }
+
+    function cancelEdit() {
+        editingFlow = null;
+        document.getElementById('run-flow-edit').classList.add('hidden');
+        document.getElementById('right-edit-preview').classList.add('hidden');
+
+        // Go back to flow detail if we had a selected flow
+        if (selectedFlowId) {
+            selectFlow(selectedFlowId);
+        } else {
+            backToFlowList();
+        }
+    }
+
+    function updateJsonPreview() {
+        if (!editingFlow) return;
+        const preview = document.getElementById('edit-json-preview');
+        // Build a clean flow object for preview
+        const clean = {
+            flow_id: editingFlow.flow_id,
+            site: editingFlow.site,
+            version: editingFlow.version || 1,
+            params: editingFlow.params || {},
+            returns: editingFlow.returns || {},
+            steps: editingFlow.steps,
+        };
+        if (editingFlow.returns_mapping && Object.keys(editingFlow.returns_mapping).length > 0) {
+            clean.returns_mapping = editingFlow.returns_mapping;
+        }
+        const json = JSON.stringify(clean, null, 2);
+        preview.textContent = json;
+    }
     </script>
 </body>
 </html>

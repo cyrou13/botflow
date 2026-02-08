@@ -24,4 +24,7 @@ class XPathResolver(BaseResolver):
     ) -> ElementHandle | None:
         if not target.xpath:
             return None
-        return await page.query_selector(f"xpath={target.xpath}")
+        element = await page.query_selector(f"xpath={target.xpath}")
+        if element and await element.is_visible():
+            return element
+        return None

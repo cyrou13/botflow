@@ -6,6 +6,7 @@ from botengine.actions.extract import ExtractAction
 from botengine.actions.fill import FillAction
 from botengine.actions.navigate import NavigateAction
 from botengine.actions.screenshot import ScreenshotAction
+from botengine.actions.type import TypeAction
 from botengine.actions.wait import WaitAction
 from botengine.models import StepAction
 
@@ -16,6 +17,7 @@ ACTION_REGISTRY: dict[StepAction, type[BaseAction]] = {
     StepAction.EXTRACT: ExtractAction,
     StepAction.WAIT: WaitAction,
     StepAction.SCREENSHOT: ScreenshotAction,
+    StepAction.TYPE: TypeAction,
 }
 
 

@@ -24,4 +24,7 @@ class CSSResolver(BaseResolver):
     ) -> ElementHandle | None:
         if not target.css:
             return None
-        return await page.query_selector(target.css)
+        element = await page.query_selector(target.css)
+        if element and await element.is_visible():
+            return element
+        return None
