@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}BotFlow — Overview{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold">Flow Health Overview</h2>
+    <p class="text-gray-400 text-sm mt-1">Monitoring all registered flows</p>
+</div>
+
+{% if flows %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+     hx-get="/api/health" hx-trigger="every 30s" hx-swap="none">
+    {% for flow in flows %}
+    <a href="/flow/{{ flow.flow_id }}" class="block bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-colors">
+        <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-blue-300">{{ flow.flow_id }}</h3>
+            {% if flow.color == 'green' %}
+            <span class="w-3 h-3 rounded-full bg-green-500"></span>
+            {% elif flow.color == 'yellow' %}
+            <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+            {% else %}
+            <span class="w-3 h-3 rounded-full bg-red-500"></span>
+            {% endif %}
+        </div>
+        <p class="text-xs text-gray-500 mb-3">{{ flow.site }}</p>
+        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div>
+                <div class="text-lg font-bold {% if flow.color == 'green' %}text-green-400{% elif flow.color == 'yellow' %}text-yellow-400{% else %}text-red-400{% endif %}">
+                    {{ flow.success_rate }}%
+                </div>
+                <div class="text-gray-500">Success</div>
+            </div>
+            <div>
+                <div class="text-lg font-bold text-gray-300">{{ flow.total_runs }}</div>
+                <div class="text-gray-500">Runs</div>
+            </div>
+            <div>
+                <div class="text-lg font-bold text-purple-400">{{ flow.heals_count }}</div>
+                <div class="text-gray-500">Heals</div>
+            </div>
+        </div>
+        <div class="mt-3 text-xs text-gray-500">
+            {{ flow.step_count }} steps &middot; v{{ flow.version }}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-gray-800 rounded-lg p-8 text-center border border-gray-700">
+    <p class="text-gray-400 text-lg">No flows found</p>
+    <p class="text-gray-500 text-sm mt-2">Add .flow.json files to the flows directory to get started.</p>
+</div>
+{% endif %}
+{% endblock %}

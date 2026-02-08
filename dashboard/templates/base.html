@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BotFlow Dashboard{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex">
+    <!-- Sidebar -->
+    <nav class="w-56 bg-gray-800 border-r border-gray-700 min-h-screen p-4 flex flex-col gap-2">
+        <div class="mb-6">
+            <h1 class="text-lg font-bold text-blue-400">BotFlow</h1>
+            <p class="text-xs text-gray-500">Dashboard</p>
+        </div>
+        <a href="/" class="block px-3 py-2 rounded hover:bg-gray-700 text-sm {% if active_page == 'home' %}bg-gray-700 text-blue-400{% endif %}">
+            Home
+        </a>
+        <a href="/heals/pending" class="block px-3 py-2 rounded hover:bg-gray-700 text-sm {% if active_page == 'heals' %}bg-gray-700 text-blue-400{% endif %}">
+            Pending Heals
+        </a>
+        <div class="mt-auto pt-4 border-t border-gray-700">
+            <p class="text-xs text-gray-600">v0.1.0</p>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="flex-1 p-6 overflow-y-auto">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

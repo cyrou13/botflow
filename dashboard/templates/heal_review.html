@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Pending Heals{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold">Pending Heal Reviews</h2>
+    <p class="text-gray-400 text-sm mt-1">Review and approve or reject auto-heal proposals</p>
+</div>
+
+{% if heals %}
+<div class="space-y-4">
+    {% for heal in heals %}
+    <div class="bg-gray-800 rounded-lg border border-gray-700 p-4" id="heal-{{ heal.heal_id }}">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <h3 class="font-semibold text-blue-300">{{ heal.flow_id|default('Unknown') }} &mdash; Step {{ heal.step_id }}</h3>
+                <p class="text-sm text-gray-400 mt-1">{{ heal.reasoning|default('No reasoning') }}</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-lg font-bold {% if heal.confidence_score >= 80 %}text-green-400{% elif heal.confidence_score >= 60 %}text-yellow-400{% else %}text-red-400{% endif %}">
+                    {{ heal.confidence_score|default(0) }}%
+                </span>
+                <span class="text-xs text-gray-500">confidence</span>
+            </div>
+        </div>
+
+        <!-- Selector comparison -->
+        <div class="grid grid-cols-2 gap-4 mb-3">
+            <div class="bg-gray-900 rounded p-3">
+                <p class="text-xs text-red-400 font-semibold mb-1">Old Selectors</p>
+                {% if heal.old_target %}
+                <p class="text-xs text-gray-400 font-mono">CSS: {{ heal.old_target.css|default('none') }}</p>
+                <p class="text-xs text-gray-400 font-mono">XPath: {{ heal.old_target.xpath|default('none') }}</p>
+                <p class="text-xs text-gray-400 font-mono">Text: {{ heal.old_target.text_content|default('none') }}</p>
+                {% endif %}
+            </div>
+            <div class="bg-gray-900 rounded p-3">
+                <p class="text-xs text-green-400 font-semibold mb-1">New Selectors</p>
+                {% if heal.new_target %}
+                <p class="text-xs text-gray-400 font-mono">CSS: {{ heal.new_target.css|default('none') }}</p>
+                <p class="text-xs text-gray-400 font-mono">XPath: {{ heal.new_target.xpath|default('none') }}</p>
+                <p class="text-xs text-gray-400 font-mono">Text: {{ heal.new_target.text_content|default('none') }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex gap-2">
+            <button
+                class="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded text-sm"
+                hx-post="/api/heals/{{ heal.heal_id }}/approve"
+                hx-target="#heal-{{ heal.heal_id }}"
+                hx-swap="outerHTML"
+            >Approve</button>
+            <button
+                class="px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded text-sm"
+                hx-post="/api/heals/{{ heal.heal_id }}/reject"
+                hx-target="#heal-{{ heal.heal_id }}"
+                hx-swap="outerHTML"
+            >Reject</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-gray-800 rounded-lg p-8 text-center border border-gray-700">
+    <p class="text-gray-400 text-lg">No pending heals</p>
+    <p class="text-gray-500 text-sm mt-2">All heal proposals have been reviewed.</p>
+</div>
+{% endif %}
+{% endblock %}

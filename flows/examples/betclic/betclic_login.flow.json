@@ -1,0 +1,70 @@
+{
+  "flow_id": "betclic_login",
+  "site": "betclic.fr",
+  "version": 1,
+  "params": {
+    "username": { "type": "string", "required": true },
+    "password": { "type": "string", "required": true }
+  },
+  "returns": {
+    "logged_in": { "type": "boolean" }
+  },
+  "steps": [
+    {
+      "id": "s_001",
+      "action": "navigate",
+      "description": "Go to Betclic login page",
+      "url": "https://www.betclic.fr/connexion"
+    },
+    {
+      "id": "s_002",
+      "action": "wait",
+      "description": "Wait for login form to load",
+      "target": { "css": "input[name='email']" },
+      "timeout_ms": 10000
+    },
+    {
+      "id": "s_003",
+      "action": "fill",
+      "description": "Enter email/username",
+      "target": {
+        "css": "input[name='email']",
+        "xpath": "//input[@name='email']",
+        "aria_label": "Email",
+        "text_content": null
+      },
+      "value": "{{params.username}}"
+    },
+    {
+      "id": "s_004",
+      "action": "fill",
+      "description": "Enter password",
+      "target": {
+        "css": "input[name='password']",
+        "xpath": "//input[@name='password']",
+        "aria_label": "Mot de passe",
+        "text_content": null
+      },
+      "value": "{{params.password}}"
+    },
+    {
+      "id": "s_005",
+      "action": "click",
+      "description": "Click login button",
+      "target": {
+        "css": "button[type='submit']",
+        "xpath": "//button[@type='submit']",
+        "text_content": "Se connecter",
+        "aria_label": "Se connecter"
+      },
+      "post_conditions": {
+        "url_changed_to": "*betclic.fr/*",
+        "element_appears": ".user-balance",
+        "timeout_ms": 15000
+      }
+    }
+  ],
+  "returns_mapping": {
+    "logged_in": true
+  }
+}

@@ -1,0 +1,37 @@
+services:
+  bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      - BETCLIC_USER=${BETCLIC_USER}
+      - BETCLIC_PASS=${BETCLIC_PASS}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - BOT_BANKROLL=${BOT_BANKROLL:-1000}
+      - BOT_MAX_STAKE_PCT=${BOT_MAX_STAKE_PCT:-0.05}
+      - BOT_POLL_INTERVAL=${BOT_POLL_INTERVAL:-30}
+      - BOT_HEAL_MODE=${BOT_HEAL_MODE:-supervised}
+      - BOTFLOW_FLOWS_DIR=/app/flows/examples/betclic
+      - BOTFLOW_HEADLESS=true
+    volumes:
+      - botflow-data:/app/.botflow
+      - ./flows:/app/flows
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: ["python", "-m", "dashboard.app"]
+    ports:
+      - "8080:8080"
+    environment:
+      - BOTFLOW_FLOWS_DIR=/app/flows
+      - BOTFLOW_DATA_DIR=/app/.botflow
+    volumes:
+      - botflow-data:/app/.botflow
+      - ./flows:/app/flows
+    restart: unless-stopped
+
+volumes:
+  botflow-data:

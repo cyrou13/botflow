@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Run Detail{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/" class="text-blue-400 text-sm hover:underline">&larr; Back to Overview</a>
+    <h2 class="text-2xl font-bold mt-2">Run: {{ run.flow_id }}</h2>
+    <div class="flex gap-4 mt-1 text-sm text-gray-400">
+        <span>Started: {{ run.started_at[:19] if run.started_at else 'N/A' }}</span>
+        <span>Duration: {{ "%.0f"|format(run.duration_ms) }}ms</span>
+        {% if run.status == 'success' %}
+        <span class="text-green-400">Success</span>
+        {% elif run.status == 'partial' %}
+        <span class="text-yellow-400">Partial</span>
+        {% else %}
+        <span class="text-red-400">Failed</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Step Results -->
+<div class="bg-gray-800 rounded-lg border border-gray-700">
+    <div class="p-4 border-b border-gray-700">
+        <h3 class="font-semibold">Step-by-Step Results</h3>
+    </div>
+    <div class="divide-y divide-gray-700">
+        {% for step in run.step_results %}
+        <div class="p-4 {% if step.status == 'failed' %}bg-red-900/20{% endif %}">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="font-mono text-xs text-gray-500">{{ step.step_id }}</span>
+                    {% if step.status == 'success' %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-green-900 text-green-300">Success</span>
+                    {% elif step.status == 'skipped' %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">Skipped</span>
+                    {% elif step.status == 'healed' %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-purple-900 text-purple-300">Healed</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-red-900 text-red-300">Failed</span>
+                    {% endif %}
+                </div>
+                <div class="text-xs text-gray-500">
+                    {{ "%.0f"|format(step.duration_ms) }}ms
+                    {% if step.resolution_strategy %}
+                    &middot; {{ step.resolution_strategy }}
+                    {% endif %}
+                </div>
+            </div>
+            {% if step.error %}
+            <p class="mt-2 text-sm text-red-400">{{ step.error }}</p>
+            {% endif %}
+            {% if step.extracted_value %}
+            <p class="mt-1 text-sm text-gray-400">Extracted: {{ step.extracted_value }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if run.returns %}
+<div class="mt-4 bg-gray-800 rounded-lg border border-gray-700 p-4">
+    <h3 class="font-semibold mb-2">Returns</h3>
+    <pre class="text-sm text-gray-300 bg-gray-900 rounded p-3 overflow-x-auto">{{ run.returns | tojson(indent=2) }}</pre>
+</div>
+{% endif %}
+{% endblock %}

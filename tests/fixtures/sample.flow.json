@@ -1,0 +1,76 @@
+{
+  "flow_id": "test_login_and_extract",
+  "site": "localhost",
+  "version": 1,
+  "params": {
+    "username": {
+      "type": "string",
+      "required": true
+    },
+    "password": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "returns": {
+    "welcome_text": {
+      "type": "string"
+    }
+  },
+  "steps": [
+    {
+      "id": "s_001",
+      "action": "fill",
+      "description": "Fill username field",
+      "target": {
+        "css": "#username",
+        "xpath": "//input[@id='username']",
+        "text_content": null,
+        "aria_label": "Username input"
+      },
+      "value": "{{params.username}}"
+    },
+    {
+      "id": "s_002",
+      "action": "fill",
+      "description": "Fill password field",
+      "target": {
+        "css": "#password",
+        "xpath": "//input[@id='password']",
+        "text_content": null,
+        "aria_label": "Password input"
+      },
+      "value": "{{params.password}}"
+    },
+    {
+      "id": "s_003",
+      "action": "click",
+      "description": "Click login button",
+      "target": {
+        "css": "#login-btn",
+        "xpath": "//button[@id='login-btn']",
+        "text_content": "Login",
+        "aria_label": "Login button"
+      },
+      "post_conditions": {
+        "element_appears": "#dashboard-section",
+        "timeout_ms": 3000
+      }
+    },
+    {
+      "id": "s_004",
+      "action": "extract",
+      "description": "Extract welcome message",
+      "target": {
+        "css": "#user-display",
+        "xpath": "//span[@id='user-display']",
+        "text_content": null,
+        "aria_label": null
+      },
+      "save_as": "welcome_text"
+    }
+  ],
+  "returns_mapping": {
+    "welcome_text": "{{extracted.welcome_text}}"
+  }
+}

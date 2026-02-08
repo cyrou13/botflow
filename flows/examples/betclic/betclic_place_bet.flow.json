@@ -1,0 +1,120 @@
+{
+  "flow_id": "betclic_place_bet",
+  "site": "betclic.fr",
+  "version": 1,
+  "params": {
+    "match": { "type": "string", "required": true },
+    "outcome": { "type": "enum", "required": true, "values": ["home", "draw", "away"] },
+    "amount": { "type": "number", "required": true, "min": 1, "max": 1000 }
+  },
+  "returns": {
+    "bet_id": { "type": "string" },
+    "actual_odds": { "type": "number" },
+    "confirmed": { "type": "boolean" }
+  },
+  "steps": [
+    {
+      "id": "s_001",
+      "action": "navigate",
+      "description": "Go to live betting page",
+      "url": "https://www.betclic.fr/live"
+    },
+    {
+      "id": "s_002",
+      "action": "wait",
+      "description": "Wait for live events to load",
+      "target": { "css": ".live-events-list" },
+      "timeout_ms": 15000
+    },
+    {
+      "id": "s_003",
+      "action": "click",
+      "description": "Find and click on the target match",
+      "target": {
+        "strategy": "find_by_text",
+        "text": "{{params.match}}",
+        "container": ".live-events-list"
+      }
+    },
+    {
+      "id": "s_004",
+      "action": "wait",
+      "description": "Wait for match odds to load",
+      "target": { "css": ".market-outcomes" },
+      "timeout_ms": 10000
+    },
+    {
+      "id": "s_005",
+      "action": "click",
+      "description": "Click on the selected outcome odds",
+      "target": {
+        "strategy": "dynamic",
+        "mapping": {
+          "home": ".outcome-home .odds-value",
+          "draw": ".outcome-draw .odds-value",
+          "away": ".outcome-away .odds-value"
+        },
+        "key": "{{params.outcome}}"
+      }
+    },
+    {
+      "id": "s_006",
+      "action": "wait",
+      "description": "Wait for bet slip to appear",
+      "target": { "css": ".betslip, .bet-slip-container" },
+      "timeout_ms": 5000
+    },
+    {
+      "id": "s_007",
+      "action": "extract",
+      "description": "Capture the actual odds from the bet slip",
+      "target": {
+        "css": ".betslip .odds-value, .bet-slip-container .current-odds",
+        "xpath": "//div[contains(@class,'betslip')]//span[contains(@class,'odds')]",
+        "dom_neighborhood": "odds value inside the bet slip panel"
+      },
+      "save_as": "actual_odds"
+    },
+    {
+      "id": "s_008",
+      "action": "fill",
+      "description": "Enter the stake amount",
+      "target": {
+        "css": ".betslip input[type='number'], .betslip input.stake-input",
+        "xpath": "//div[contains(@class,'betslip')]//input[@type='number']",
+        "aria_label": "Mise"
+      },
+      "value": "{{params.amount}}"
+    },
+    {
+      "id": "s_009",
+      "action": "click",
+      "description": "Click the place bet button",
+      "target": {
+        "css": ".betslip .place-bet-btn, .betslip button[type='submit']",
+        "text_content": "Parier",
+        "aria_label": "Placer le pari"
+      },
+      "post_conditions": {
+        "element_appears": ".bet-confirmation, .bet-receipt",
+        "timeout_ms": 10000
+      }
+    },
+    {
+      "id": "s_010",
+      "action": "extract",
+      "description": "Extract the bet confirmation ID",
+      "target": {
+        "css": ".bet-confirmation .bet-id, .bet-receipt .reference-number",
+        "xpath": "//div[contains(@class,'confirmation')]//span[contains(@class,'bet-id')]",
+        "dom_neighborhood": "bet reference number in the confirmation panel"
+      },
+      "save_as": "bet_id"
+    }
+  ],
+  "returns_mapping": {
+    "bet_id": "{{extracted.bet_id}}",
+    "actual_odds": "{{extracted.actual_odds}}",
+    "confirmed": true
+  }
+}

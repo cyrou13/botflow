@@ -1,0 +1,508 @@
+{
+  "$defs": {
+    "DynamicTarget": {
+      "description": "Dynamic target resolved at runtime.",
+      "properties": {
+        "strategy": {
+          "enum": [
+            "find_by_text",
+            "dynamic",
+            "css",
+            "xpath"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mapping"
+        },
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "container": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Container"
+        }
+      },
+      "required": [
+        "strategy"
+      ],
+      "title": "DynamicTarget",
+      "type": "object"
+    },
+    "FlowParam": {
+      "description": "Parameter definition for a flow.",
+      "properties": {
+        "type": {
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "enum"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "default": {
+          "default": null,
+          "title": "Default"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Values"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "FlowParam",
+      "type": "object"
+    },
+    "FlowReturn": {
+      "description": "Return value definition for a flow.",
+      "properties": {
+        "type": {
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "FlowReturn",
+      "type": "object"
+    },
+    "FlowStep": {
+      "description": "A single step in a flow.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "action": {
+          "$ref": "#/$defs/StepAction"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TargetSelector"
+            },
+            {
+              "$ref": "#/$defs/DynamicTarget"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "save_as": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Save As"
+        },
+        "pre_conditions": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PreConditions"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "post_conditions": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PostConditions"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "timeout_ms": {
+          "default": 10000,
+          "title": "Timeout Ms",
+          "type": "integer"
+        },
+        "optional": {
+          "default": false,
+          "title": "Optional",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "action"
+      ],
+      "title": "FlowStep",
+      "type": "object"
+    },
+    "PostConditions": {
+      "description": "Conditions to verify after a step executes.",
+      "properties": {
+        "url_changed_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url Changed To"
+        },
+        "element_appears": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Appears"
+        },
+        "element_disappears": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Element Disappears"
+        },
+        "timeout_ms": {
+          "default": 5000,
+          "title": "Timeout Ms",
+          "type": "integer"
+        }
+      },
+      "title": "PostConditions",
+      "type": "object"
+    },
+    "PreConditions": {
+      "description": "Conditions that must hold before a step executes.",
+      "properties": {
+        "url_pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url Pattern"
+        },
+        "expected_elements": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Expected Elements",
+          "type": "array"
+        }
+      },
+      "title": "PreConditions",
+      "type": "object"
+    },
+    "StepAction": {
+      "description": "Available step actions.",
+      "enum": [
+        "navigate",
+        "click",
+        "fill",
+        "extract",
+        "wait",
+        "screenshot",
+        "select",
+        "hover",
+        "scroll"
+      ],
+      "title": "StepAction",
+      "type": "string"
+    },
+    "TargetSelector": {
+      "description": "Element selector with multiple resolution strategies.",
+      "properties": {
+        "css": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Css"
+        },
+        "xpath": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Xpath"
+        },
+        "text_content": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text Content"
+        },
+        "aria_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aria Label"
+        },
+        "visual_anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visual Anchor"
+        },
+        "screenshot_crop": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Screenshot Crop"
+        },
+        "dom_neighborhood": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dom Neighborhood"
+        }
+      },
+      "title": "TargetSelector",
+      "type": "object"
+    }
+  },
+  "description": "A complete automation flow definition.",
+  "properties": {
+    "flow_id": {
+      "title": "Flow Id",
+      "type": "string"
+    },
+    "site": {
+      "title": "Site",
+      "type": "string"
+    },
+    "version": {
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "params": {
+      "additionalProperties": {
+        "$ref": "#/$defs/FlowParam"
+      },
+      "title": "Params",
+      "type": "object"
+    },
+    "returns": {
+      "additionalProperties": {
+        "$ref": "#/$defs/FlowReturn"
+      },
+      "title": "Returns",
+      "type": "object"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/FlowStep"
+      },
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "returns_mapping": {
+      "additionalProperties": true,
+      "title": "Returns Mapping",
+      "type": "object"
+    }
+  },
+  "required": [
+    "flow_id",
+    "site",
+    "steps"
+  ],
+  "title": "Flow",
+  "type": "object"
+}

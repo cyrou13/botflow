@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Flow: {{ flow.flow_id }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/" class="text-blue-400 text-sm hover:underline">&larr; Back to Overview</a>
+    <h2 class="text-2xl font-bold mt-2">{{ flow.flow_id }}</h2>
+    <p class="text-gray-400 text-sm">{{ flow.site }} &middot; v{{ flow.version }} &middot; {{ flow.step_count }} steps</p>
+</div>
+
+<!-- Health Summary -->
+<div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 text-center">
+        <div class="text-3xl font-bold {% if health.color == 'green' %}text-green-400{% elif health.color == 'yellow' %}text-yellow-400{% else %}text-red-400{% endif %}">
+            {{ health.success_rate }}%
+        </div>
+        <div class="text-gray-500 text-sm">Success Rate</div>
+    </div>
+    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 text-center">
+        <div class="text-3xl font-bold text-gray-300">{{ health.total_runs }}</div>
+        <div class="text-gray-500 text-sm">Total Runs</div>
+    </div>
+    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 text-center">
+        <div class="text-3xl font-bold text-purple-400">{{ health.heals_count }}</div>
+        <div class="text-gray-500 text-sm">Heals Triggered</div>
+    </div>
+</div>
+
+<!-- Recent Runs -->
+<div class="bg-gray-800 rounded-lg border border-gray-700">
+    <div class="p-4 border-b border-gray-700">
+        <h3 class="font-semibold">Recent Runs</h3>
+    </div>
+    {% if runs %}
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="border-b border-gray-700 text-gray-400">
+                <th class="text-left p-3">Status</th>
+                <th class="text-left p-3">Started</th>
+                <th class="text-left p-3">Duration</th>
+                <th class="text-left p-3">Steps</th>
+                <th class="text-left p-3">Heals</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for run in runs %}
+            <tr class="border-b border-gray-700 hover:bg-gray-750">
+                <td class="p-3">
+                    {% if run.status == 'success' %}
+                    <span class="px-2 py-1 rounded text-xs bg-green-900 text-green-300">Success</span>
+                    {% elif run.status == 'partial' %}
+                    <span class="px-2 py-1 rounded text-xs bg-yellow-900 text-yellow-300">Partial</span>
+                    {% else %}
+                    <span class="px-2 py-1 rounded text-xs bg-red-900 text-red-300">Failed</span>
+                    {% endif %}
+                </td>
+                <td class="p-3 text-gray-400">{{ run.started_at[:19] if run.started_at else 'N/A' }}</td>
+                <td class="p-3 text-gray-400">{{ "%.0f"|format(run.duration_ms) }}ms</td>
+                <td class="p-3 text-gray-400">{{ run.step_results|length if run.step_results else 0 }}</td>
+                <td class="p-3 text-gray-400">{{ run.heals_triggered|default(0) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="p-6 text-center text-gray-500">No runs recorded yet.</div>
+    {% endif %}
+</div>
+{% endblock %}
